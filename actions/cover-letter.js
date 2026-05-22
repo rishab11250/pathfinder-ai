@@ -61,6 +61,7 @@ Requirements:
     return coverLetter;
   } catch (error) {
     console.error("Error generating cover letter, using fallback:", error);
+    const errorCode = error?.code || "UNKNOWN";
 
     const fallbackContent = `
 # Cover Letter
@@ -88,7 +89,7 @@ ${user.name || "Candidate"}
       },
     });
 
-    return coverLetter;
+    return { ...coverLetter, _errorCode: errorCode };
   }
 }
 
