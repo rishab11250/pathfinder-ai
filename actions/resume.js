@@ -5,21 +5,20 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateGeminiContent } from "@/lib/gemini";
 
-// New validation imports
-import { validateInput } from "@/lib/validate";
-import { resumeSaveSchema, resumeImprovementSchema } from "@/lib/schemas/forms";
+// Add shared validation utilities
+import { validateInput } from "@/app/lib/validate"; // Adjust route as per your project setup
+import { resumeSaveSchema, resumeImprovementSchema } from "@/app/lib/schema"; 
 
 export async function saveResume(rawContent) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  // 1. Edge input boundary validation
+  // Validate incoming boundary argument
   const validation = validateInput(resumeSaveSchema, { content: rawContent });
   if (!validation.success) {
     return { success: false, errors: validation.errors };
   }
 
-  // Use verified safe text data
   const { content } = validation.data;
 
   const user = await db.user.findUnique({
@@ -43,7 +42,6 @@ export async function saveResume(rawContent) {
     });
 
     revalidatePath("/resume");
-    // Return structured success container matching client parsing patterns
     return { success: true, data: resume };
   } catch (error) {
     console.error("Error saving resume:", error);
@@ -53,7 +51,6 @@ export async function saveResume(rawContent) {
 
 export async function getResume() {
   const { userId } = await auth();
-
   if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
@@ -73,13 +70,12 @@ export async function improveWithAI(rawParams) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  // 1. Edge input boundary validation
+  // Validate and sanitize incoming parameters
   const validation = validateInput(resumeImprovementSchema, rawParams);
   if (!validation.success) {
     return { success: false, errors: validation.errors };
   }
 
-  // Use verified safe and sanitized values
   const { current, type } = validation.data;
 
   const user = await db.user.findUnique({
@@ -92,7 +88,7 @@ export async function improveWithAI(rawParams) {
   if (!user) throw new Error("User not found");
 
   const prompt = `
-    As an expert resume writer, improve the following ${type} description for a ${user.industry || "professional"} professional.
+    As an expert resume writer, improve the following ${type} description for a ${user.industry} professional.
     Make it more impactful, quantifiable, and aligned with industry standards.
     Current content: "${current}"
 
