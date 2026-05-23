@@ -1,12 +1,21 @@
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContentStream } from "@/lib/gemini";
+import {
+  buildSseErrorResponse,
+  preparePromptForGeneration,
+} from "@/lib/prompt-guard";
+import {
+  buildRateLimitResponse,
+  enforceRateLimit,
+  getRateLimitIdentifier,
+} from "@/lib/rate-limit";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 
 export async function POST(request) {
   const { userId } = await auth();
   const endpoint = "/api/generate";
   const subject = getRateLimitIdentifier(request, userId);
-  const rateLimit = enforceRateLimit({
+  const rateLimit = await enforceRateLimit({
     endpoint,
     subject,
     limitPerMinute: userId ? 20 : 5,
