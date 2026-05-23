@@ -6,17 +6,14 @@ The `POST /api/generate` route (`app/api/generate/route.js`) previously referenc
 
 What I changed
 -------------
-- Added the missing imports and refactored the route to delegate to a testable handler: `lib/generate-handler.js`.
-- Added unit and integration-style tests covering rate-limiting and SSE error flows:
+- Added the missing imports directly in `app/api/generate/route.js` for the helper functions already used by the route.
+- Added unit tests covering rate-limiting and SSE helper response behavior:
   - `tests/generate-api.test.mjs`
-  - `tests/generate-handler.test.mjs`
 
 Files touched
 ------------
-- `app/api/generate/route.js` — now delegates to `lib/generate-handler.js`
-- `lib/generate-handler.js` — new testable handler (supports dependency overrides)
+- `app/api/generate/route.js` — fixed missing imports and kept existing route behavior
 - `tests/generate-api.test.mjs` — rate-limit + SSE helper unit tests
-- `tests/generate-handler.test.mjs` — integration-style tests for SSE error flows
 
 Reproduction steps (local)
 -------------------------
@@ -31,7 +28,6 @@ npx prisma generate
 
 ```bash
 node --test --test-only tests/generate-api.test.mjs
-node --test --test-only tests/generate-handler.test.mjs
 ```
 
 3. (Manual server verification) Start the dev server and exercise the endpoint. In one terminal:
@@ -78,13 +74,9 @@ PR checklist for this fix
 -----------------------
 - [ ] Code compiles and tests pass locally
 - [ ] Add a short description to the PR referencing this docs file
-- [ ] Add `tests/generate-api.test.mjs` and `tests/generate-handler.test.mjs` to CI if not already included
+- [ ] Add `tests/generate-api.test.mjs` to CI if not already included
 - [ ] Optionally: add a changelog entry
 
 Follow-ups
 ----------
-- The ATS-related issues we discovered earlier (model naming mismatch and suggestions shape) are separate and can be addressed in follow-up PRs — I can open issues or implement fixes next if you want.
-
-Questions
----------
-Do you want me to open a PR with the code+tests and this docs file, and optionally create GitHub issues for the ATS bugs as separate work items?
+- Keep ATS-related fixes (model naming mismatch and suggestions shape) in separate scoped PRs.

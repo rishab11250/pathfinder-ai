@@ -47,8 +47,11 @@ test("buildRateLimitResponse returns SSE body and correct headers when sse=true"
   assert.equal(res.headers.get("Content-Type"), "text/event-stream");
   const text = await res.text();
   assert.ok(text.includes("data:"));
-  assert.ok(text.includes("\"error\": \"Too Many Requests\""));
-  assert.ok(text.includes("\"retryAfterSeconds\": 10"));
+  const payloadLine = text.split("\n").find((line) => line.startsWith("data: "));
+  assert.ok(payloadLine);
+  const payload = JSON.parse(payloadLine.slice(6));
+  assert.equal(payload.error, "Too Many Requests");
+  assert.equal(payload.retryAfterSeconds, 10);
 });
 
 test("buildSseErrorResponse streams an SSE error and terminates with [DONE]", async () => {
@@ -57,6 +60,9 @@ test("buildSseErrorResponse streams an SSE error and terminates with [DONE]", as
   assert.equal(res.headers.get("Content-Type"), "text/event-stream");
   const text = await res.text();
   assert.ok(text.includes('data:'));
-  assert.ok(text.includes('"error": "Prompt is required"'));
+  const payloadLine = text.split("\n").find((line) => line.startsWith("data: {"));
+  assert.ok(payloadLine);
+  const payload = JSON.parse(payloadLine.slice(6));
+  assert.equal(payload.error, "Prompt is required");
   assert.ok(text.includes("[DONE]"));
 });
