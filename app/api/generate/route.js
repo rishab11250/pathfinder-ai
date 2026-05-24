@@ -1,8 +1,35 @@
 import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContentStream } from "@/lib/gemini";
+import { db } from "@/lib/prisma";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
+import {
+  getRateLimitIdentifier,
+  enforceRateLimit,
+  buildRateLimitResponse,
+} from "@/lib/rate-limit";
+import {
+  preparePromptForGeneration,
+  buildSseErrorResponse,
+} from "@/lib/prompt-guard";
 
 export async function POST(request) {
   const { userId } = await auth();
+  const endpoint = "/api/generate";
+  const subject = getRateLimitIdentifier(request, userId);
+  const rateLimit = enforceRateLimit({
+    endpoint,
+    subject,
+    limitPerMinute: userId ? 20 : 5,
+    burstCapacity: userId ? 10 : 5,
+  });
+
+  if (!rateLimit.allowed) {
+    return buildRateLimitResponse({
+      message: "Too Many Requests",
+      retryAfterSeconds: rateLimit.retryAfterSeconds,
+      sse: true,
+    });
+  }
 
   if (!userId) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -24,10 +51,12 @@ export async function POST(request) {
   }
 
   let prompt;
+  let conversationId;
 
   try {
     const body = await request.json();
     prompt = body.prompt;
+    conversationId = body.conversationId;
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid request body" }),
@@ -39,151 +68,98 @@ export async function POST(request) {
   }
 
   if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-    return new Response(
-      JSON.stringify({ error: "Prompt is required" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return buildSseErrorResponse("Prompt is required", 400);
+  }
+
+  const promptCheck = preparePromptForGeneration(prompt);
+
+  if (!promptCheck.allowed) {
+    return buildSseErrorResponse(promptCheck.message, promptCheck.status);
+  }
+
+  const user = await db.user.findUnique({
+    where: {
+      clerkUserId: userId,
+    },
+  });
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: "User not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (conversationId) {
+    const conversation = await db.conversation.findFirst({
+      where: {
+        id: conversationId,
+        userId: user.id,
+      },
+    });
+
+    if (!conversation) {
+      return new Response(
+        JSON.stringify({ error: "Conversation not found" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    await db.message.create({
+      data: {
+        conversationId,
+        role: "user",
+        content: prompt,
+      },
+    });
+
+    await db.conversation.update({
+      where: {
+        id: conversationId,
+      },
+      data: {
+        updatedAt: new Date(),
+      },
+    });
   }
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
+      let fullResponse = "";
+
       try {
-        const allowedKeywords = [
-          "hi",
-          "hello",
-          "hey",
-          "good morning",
-          "good afternoon",
-          "good evening",
-          "thanks",
-          "thank you",
-          "help",
-          "guide me",
-          "career",
-          "job",
-          "jobs",
-          "profession",
-          "professional",
-          "growth",
-          "career path",
-          "career switch",
-          "future",
-          "resume",
-          "cv",
-          "cover letter",
-          "linkedin",
-          "portfolio",
-          "application",
-          "apply",
-          "hiring",
-          "recruiter",
-          "recruitment",
-          "interview",
-          "interviews",
-          "mock interview",
-          "technical interview",
-          "hr interview",
-          "behavioral interview",
-          "skill",
-          "skills",
-          "learn",
-          "learning",
-          "roadmap",
-          "certification",
-          "course",
-          "upskill",
-          "internship",
-          "internships",
-          "placement",
-          "placements",
-          "freelance",
-          "remote job",
-          "salary",
-          "package",
-          "ctc",
-          "developer",
-          "software engineer",
-          "frontend",
-          "backend",
-          "full stack",
-          "web developer",
-          "app developer",
-          "android developer",
-          "ios developer",
-          "data analyst",
-          "data scientist",
-          "machine learning",
-          "ai engineer",
-          "devops",
-          "cloud",
-          "cybersecurity",
-          "ui ux",
-          "product manager",
-          "qa engineer",
-          "java",
-          "python",
-          "javascript",
-          "typescript",
-          "react",
-          "nextjs",
-          "node",
-          "express",
-          "mongodb",
-          "sql",
-          "mysql",
-          "postgresql",
-          "firebase",
-          "aws",
-          "docker",
-          "kubernetes",
-          "git",
-          "github",
-          "dsa",
-          "algorithms",
-          "system design",
-          "college",
-          "degree",
-          "engineering",
-          "btech",
-          "student",
-          "graduation",
-          "campus placement",
-        ];
+        const restrictedPrompt = buildSecurePrompt({
+          task: `You are Pathfinder AI, a professional career guidance assistant.
 
-        const lowerPrompt = prompt.toLowerCase();
+Your scope includes ALL professional and career-related domains, including:
+- software engineering, medicine, healthcare, law, finance, accounting, banking
+- business, management, marketing, sales, design, UI/UX, architecture
+- education, teaching, research, government jobs, civil services
+- entrepreneurship, freelancing, consulting, skilled trades
+- manufacturing, logistics, human resources, customer support
+- media, content creation, non-technical professions
 
-        const allowed = allowedKeywords.some((keyword) =>
-          lowerPrompt.includes(keyword)
-        );
+You help users with:
+- career guidance, interview preparation, mock interviews
+- resume/CV improvement, cover letters, job applications
+- job search strategy, skill development, certification guidance
+- learning roadmaps, salary discussions, career transitions
+- workplace growth, professional development
 
-        if (!allowed) {
-          const fallback =
-            "I can only assist with career-related queries such as jobs, interviews, resumes, and skill development.";
-
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ text: fallback })}\n\n`
-            )
-          );
-
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-          return;
-        }
-
-        const restrictedPrompt = `
-You are Pathfinder AI, a career-focused assistant.
-
-Only answer career-related questions.
-Politely refuse unrelated questions.
-
-User Query: ${prompt}
-`;
+Rules:
+- Stay focused on careers and professional growth.
+- If the user asks something completely unrelated (jokes, entertainment, random trivia, casual unrelated chat), politely redirect them toward career/professional topics.
+- Be practical, structured, and professional.
+- Give actionable advice.`,
+          untrustedData: [
+            { label: "userQuery", value: promptCheck.prompt, maxLength: 4000 },
+          ],
+        });
 
         const result = await generateGeminiContentStream(restrictedPrompt);
 
@@ -191,9 +167,30 @@ User Query: ${prompt}
           const text = chunk.text();
 
           if (text) {
+            fullResponse += text;
+
             const sseMessage = `data: ${JSON.stringify({ text })}\n\n`;
             controller.enqueue(encoder.encode(sseMessage));
           }
+        }
+
+        if (conversationId && fullResponse.trim()) {
+          await db.message.create({
+            data: {
+              conversationId,
+              role: "assistant",
+              content: fullResponse,
+            },
+          });
+
+          await db.conversation.update({
+            where: {
+              id: conversationId,
+            },
+            data: {
+              updatedAt: new Date(),
+            },
+          });
         }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -208,7 +205,7 @@ User Query: ${prompt}
             })}\n\n`
           )
         );
-
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
       }
     },

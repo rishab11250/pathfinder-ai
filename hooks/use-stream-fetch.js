@@ -17,6 +17,7 @@ export default function useStreamFetch() {
   const [streamedText, setStreamedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const isDev = process.env.NODE_ENV !== "production";
 
   const abortControllerRef = useRef(null);
   const pendingRef = useRef("");
@@ -26,6 +27,22 @@ export default function useStreamFetch() {
   const WORDS_PER_TICK = 2;
   const TICK_MS = 60;
 
+  const stopReleasing = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const finishStream = useCallback(() => {
+    receivingRef.current = false;
+
+    if (!pendingRef.current) {
+      stopReleasing();
+      setIsLoading(false);
+    }
+  }, [stopReleasing]);
+
   const startReleasing = useCallback(() => {
     if (timerRef.current) return; 
 
@@ -33,8 +50,7 @@ export default function useStreamFetch() {
       const pending = pendingRef.current;
       if (!pending) {
         if (!receivingRef.current) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
+          stopReleasing();
           setIsLoading(false);
         }
         return;
@@ -55,17 +71,14 @@ export default function useStreamFetch() {
 
       setStreamedText((prev) => prev + release);
     }, TICK_MS);
-  }, []);
+  }, [stopReleasing]);
 
-  const startStream = useCallback(async (prompt) => {
+const startStream = useCallback(async (prompt, conversationId = null) => {
     // Cancel any existing stream
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    stopReleasing();
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -84,7 +97,10 @@ export default function useStreamFetch() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+     body: JSON.stringify({
+  prompt,
+  conversationId,
+}),
         signal: controller.signal,
       });
 
@@ -116,8 +132,7 @@ export default function useStreamFetch() {
           const data = line.slice(6);
 
           if (data === "[DONE]") {
-            receivingRef.current = false;
-            // Flush any remaining buffered text
+            finishStream();
             if (pendingRef.current && !timerRef.current) {
               startReleasing();
             }
@@ -129,8 +144,7 @@ export default function useStreamFetch() {
 
             if (parsed.error) {
               setError(parsed.error);
-              receivingRef.current = false;
-              setIsLoading(false);
+              finishStream();
               return;
             }
 
@@ -138,43 +152,45 @@ export default function useStreamFetch() {
               pendingRef.current += parsed.text;
               startReleasing();
             }
-          } catch {
-            
+          } catch (parseError) {
+            if (isDev) {
+              console.warn("[useStreamFetch] Ignoring malformed SSE payload", parseError, data);
+            }
+            continue;
           }
         }
       }
 
-      receivingRef.current = false;
-    }catch (err) {
+      finishStream();
+    } catch (err) {
       if (err.name === "AbortError") {
-        receivingRef.current = false;
-        setIsLoading(false);
+        finishStream();
         return;
       }
 
       setError(err.message || "Stream failed");
-      receivingRef.current = false;
-      setIsLoading(false);
-    }
-    finally {
+      finishStream();
+      if (isDev) {
+        console.warn("[useStreamFetch] Stream failed", err);
+      }
+    } finally {
       clearTimeout(timeoutId);
-}
-  }, [startReleasing]);
+      abortControllerRef.current = null;
+      finishStream();
+    }
+  }, [finishStream, isDev, startReleasing, stopReleasing]);
 
   const reset = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    stopReleasing();
     pendingRef.current = "";
     receivingRef.current = false;
     setStreamedText("");
     setError(null);
     setIsLoading(false);
-  }, []);
+  }, [stopReleasing]);
   
   useEffect(() => {
   return () => {
@@ -182,11 +198,9 @@ export default function useStreamFetch() {
       abortControllerRef.current.abort();
     }
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+    stopReleasing();
   };
-  }, []);
+  }, [stopReleasing]);
 
   return { streamedText, isLoading, error, startStream, reset };
 }
