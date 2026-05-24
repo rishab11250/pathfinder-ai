@@ -95,7 +95,7 @@ export default function Sidebar() {
             ACCOUNT
           </p>
           <NavLink 
-            item={{ name: "Settings", icon: Settings, href: "/onboarding" }} 
+            item={{ name: "Settings", icon: Settings, href: "/settings" }} 
           />
         </div>
       </nav>

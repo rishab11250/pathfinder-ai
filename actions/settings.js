@@ -4,40 +4,77 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
-export async function getUserSettings() {
-  const { userId } = await auth();
-  if (!userId) return null;
-
+async function getUserByClerkId(userId) {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-    include: { settings: true },
   });
 
-  if (!user) return null;
+  if (!user) {
+    throw new Error("User not found");
+  }
 
-  if (user.settings) return user.settings;
-
-  // Create default settings if they don't exist
-  return await db.userSettings.create({
-    data: { userId: user.id },
-  });
+  return user;
 }
 
-export async function updateUserSettings(data) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+function normalizeSettings(settings) {
+  return {
+    notifications: settings.notifications,
+    emailAlerts: settings.emailAlerts,
+  };
+}
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) throw new Error("User not found");
+function normalizeSettingsInput(data) {
+  return {
+    notifications: Boolean(data.notifications),
+    emailAlerts: Boolean(data.emailAlerts),
+  };
+}
 
-  const settings = await db.userSettings.upsert({
+export async function getUserSettings(userId) {
+  if (!userId) return null;
+
+  const user = await getUserByClerkId(userId);
+
+  const existingSettings = await db.userSettings.findUnique({
     where: { userId: user.id },
-    update: data,
-    create: { userId: user.id, ...data },
+  });
+
+  if (existingSettings) {
+    return normalizeSettings(existingSettings);
+  }
+
+  const settings = await db.userSettings.create({
+    data: { userId: user.id },
+  });
+
+  return normalizeSettings(settings);
+}
+
+export async function updateUserSettings(userId, data) {
+  const { userId: authenticatedUserId } = await auth();
+
+  if (!authenticatedUserId || authenticatedUserId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const user = await getUserByClerkId(userId);
+  const settingsData = normalizeSettingsInput(data);
+
+  const existingSettings = await db.userSettings.findUnique({
+    where: { userId: user.id },
+  });
+
+  if (!existingSettings) {
+    await db.userSettings.create({
+      data: { userId: user.id },
+    });
+  }
+
+  const settings = await db.userSettings.update({
+    where: { userId: user.id },
+    data: settingsData,
   });
 
   revalidatePath("/settings");
-  return settings;
+  return normalizeSettings(settings);
 }
