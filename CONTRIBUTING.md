@@ -114,7 +114,7 @@ By participating in this project, you agree to keep this space respectful, inclu
 
 ## Project Structure
 
-```
+```text
 pathfinder-ai/
 ├── app/              # Next.js App Router pages & layouts
 ├── components/       # Reusable UI components
@@ -142,7 +142,7 @@ Always create a new branch for your changes. **Never commit directly to `main`.*
 
 Use this format:
 
-```
+```text
 <type>/<short-description>
 ```
 
@@ -182,12 +182,12 @@ git checkout -b feat/your-feature-name
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard:
 
-```
+```text
 <type>(<optional scope>): <short description>
 ```
 
 **Examples for PathFinder AI:**
-```
+```text
 feat(resume): add AI-powered bullet point suggestions
 fix(onboarding): resolve redirect loop after sign-up
 docs: add environment setup steps to CONTRIBUTING.md
@@ -243,7 +243,7 @@ This project is part of **GSSoC'26** — issues must be assigned before you star
 4. Only begin coding after assignment
 
 **Example comment:**
-```
+```markdown
 Hi maintainers 👋
 
 I'd like to work on this issue under GSSoC'26.
