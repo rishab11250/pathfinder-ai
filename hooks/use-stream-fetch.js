@@ -68,7 +68,11 @@ export default function useStreamFetch() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/generate", {
+      const baseUrl =
+        typeof window !== "undefined" && window?.location?.origin
+          ? window.location.origin
+          : "http://localhost";
+      const response = await fetch(`${baseUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
      body: JSON.stringify({
