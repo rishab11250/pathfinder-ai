@@ -345,7 +345,7 @@ export async function getAssessment(id) {
   });
   if (!user) return null;
 
-  const assessment = await db.assessment.findUnique({
+  const assessment = await db.assessment.findFirst({
     where: {
       id,
       userId: user.id,
