@@ -3,6 +3,7 @@ import { generateGeminiContentStream } from "@/lib/gemini";
 import { db } from "@/lib/prisma";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserAiContext } from "@/lib/ai-context";
+import { chatPromptSchema } from "@/lib/schemas/chat";
 import {
   getRateLimitIdentifier,
   enforceRateLimit,
@@ -105,11 +106,13 @@ export async function POST(request) {
     return respondError(ERROR_CODES.VALIDATION_ERROR, "Invalid request body");
   }
 
-  if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-    return buildSseErrorResponse("Prompt is required", 400);
+  const validation = chatPromptSchema.safeParse(prompt);
+  if (!validation.success) {
+    return buildSseErrorResponse(validation.error.errors[0].message, 400);
   }
 
-  const promptCheck = preparePromptForGeneration(prompt);
+  const validatedPrompt = validation.data;
+  const promptCheck = preparePromptForGeneration(validatedPrompt);
 
   if (!promptCheck.allowed) {
     return buildSseErrorResponse(promptCheck.message, promptCheck.status);
