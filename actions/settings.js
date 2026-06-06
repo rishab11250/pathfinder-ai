@@ -31,15 +31,15 @@ function normalizeSettings(settings) {
   };
 }
 
-export async function getUserSettings(userId) {
+export async function getUserSettings() {
   const { userId: authenticatedUserId } = await auth();
 
-  if (!authenticatedUserId || authenticatedUserId !== userId) {
+  if (!authenticatedUserId) {
     throw new Error("Unauthorized");
   }
 
   try {
-    const user = await getUserByClerkId(userId);
+    const user = await getUserByClerkId(authenticatedUserId);
 
     const existingSettings = await db.userSettings.findUnique({
       where: { userId: user.id },
@@ -61,10 +61,10 @@ export async function getUserSettings(userId) {
   }
 }
 
-export async function updateUserSettings(userId, data) {
+export async function updateUserSettings(data) {
   const { userId: authenticatedUserId } = await auth();
 
-  if (!authenticatedUserId || authenticatedUserId !== userId) {
+  if (!authenticatedUserId) {
     throw new Error("Unauthorized");
   }
 
@@ -75,7 +75,7 @@ export async function updateUserSettings(userId, data) {
       return { success: false, errors: validation.errors };
     }
 
-    const user = await getUserByClerkId(userId);
+    const user = await getUserByClerkId(authenticatedUserId);
     const settingsData = validation.data;
 
     const existingSettings = await db.userSettings.findUnique({
