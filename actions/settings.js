@@ -31,6 +31,17 @@ function normalizeSettings(settings) {
   };
 }
 
+function normalizeSettingsInput(data) {
+  return {
+    notifications: Boolean(data.notifications),
+    emailAlerts: Boolean(data.emailAlerts),
+  };
+}
+
+export async function getUserSettings() {
+  const { userId } = await auth();
+
+  if (!userId) {
 export async function getUserSettings(userId) {
   const { userId: authenticatedUserId } = await auth();
 
