@@ -1,8 +1,8 @@
 export const faqs = [
   {
-    question: "What makes PathFinder Ai unique as a career development tool?",
+    question: "What makes PathFinder AI unique as a career development tool?",
     answer:
-      "PathFinder Ai combines AI-powered career tools with industry-specific insights to help you advance your career. Our platform offers three main features: an intelligent resume builder, a cover letter generator, and an adaptive interview preparation system. Each tool is tailored to your industry and skills, providing personalized guidance for your professional journey.",
+      "PathFinder AI combines AI-powered career tools with industry-specific insights to help you advance your career. Our platform offers three main features: an intelligent resume builder, a cover letter generator, and an adaptive interview preparation system. Each tool is tailored to your industry and skills, providing personalized guidance for your professional journey.",
   },
   {
     question: "How does PathFinder AI create tailored content?",
