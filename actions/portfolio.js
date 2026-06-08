@@ -3,9 +3,9 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { validateInput } from "@/lib/validate";
+import { validateInput, parseAIJson } from "@/lib/validate";
 import { projectIdeaSchema } from "@/lib/schemas/forms";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
+import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildUserProfileContext } from "@/lib/ai-context";
 

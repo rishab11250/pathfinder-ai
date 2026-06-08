@@ -40,9 +40,8 @@ export async function updateUser(data) {
       );
     } catch (e) {
       console.error("Failed to generate insights pre-transaction:", e);
-      precomputedInsights = null;
     }
-    
+
     const result = await db.$transaction(
       async (tx) => {
         const industryInsight = precomputedInsights
