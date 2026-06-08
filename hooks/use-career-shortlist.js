@@ -26,10 +26,6 @@ export function useCareerShortlist() {
       setIsLoaded(true);
     }
   }, []);
-    } catch (e) {
-      console.error("Failed to load shortlist", e);
-    }
-  }, []);
 
   // Listen for storage events to sync across tabs
   useEffect(() => {
