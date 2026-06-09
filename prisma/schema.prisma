@@ -56,6 +56,8 @@ model User {
   networkingEmails     NetworkingEmail[]
   projectIdeas         ProjectIdea[]
   resumeGenerations    ResumeGeneration[]
+  starStories          StarStory[]
+  recruiterEmails      RecruiterEmail[]
   settings             UserSettings?
 
   exportRecords ExportRecord[]
@@ -325,6 +327,29 @@ model ResumeGeneration {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobDescription String   @db.Text
   content        Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model StarStory {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rawExperience  String   @db.Text
+  starContent    Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model RecruiterEmail {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalEmail  String   @db.Text
+  goal           String
+  replyContent   String   @db.Text
   createdAt      DateTime @default(now())
 
   @@index([userId])
