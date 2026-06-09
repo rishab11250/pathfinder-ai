@@ -45,6 +45,9 @@ model User {
   interviewCheatSheets InterviewCheatSheet[]
   linkedinPosts        LinkedInPost[]
   offerComparisons     OfferComparison[]
+  careerPivots         CareerPivot[]
+  onboardingPlans      OnboardingPlan[]
+  resignationLetters   ResignationLetter[]
   settings             UserSettings?
 
   exportRecords ExportRecord[]
@@ -356,6 +359,42 @@ model OfferComparison {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   offers         Json
   analysis       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CareerPivot {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentRole    String
+  targetRole     String
+  analysis       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model OnboardingPlan {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        String
+  role           String
+  planContent    Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ResignationLetter {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circumstance   String
+  lastDay        String
+  content        String   @db.Text
   createdAt      DateTime @default(now())
 
   @@index([userId])
