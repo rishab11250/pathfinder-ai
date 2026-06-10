@@ -33,7 +33,10 @@ import {
   Calculator,
   ArrowRightLeft,
   CalendarClock,
-  DoorOpen
+  DoorOpen,
+  TrendingUp,
+  FileSignature,
+  BrainCircuit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -62,10 +65,13 @@ const MENU_GROUPS = [
       { href: "/salary-negotiation", label: "Salary Coach", icon: <DollarSign className="h-4 w-4" /> },
       { href: "/offer-comparer", label: "Offer Comparer", icon: <Calculator className="h-4 w-4 text-emerald-500" /> },
       { href: "/career-pivot", label: "Career Pivot", icon: <ArrowRightLeft className="h-4 w-4 text-orange-500" /> },
+      { href: "/promotion-negotiator", label: "Promotion Coach", icon: <TrendingUp className="h-4 w-4 text-purple-500" /> },
+      { href: "/freelance-proposal", label: "Freelance Proposals", icon: <FileSignature className="h-4 w-4 text-teal-500" /> },
       { href: "/onboarding-plan", label: "30-60-90 Plan", icon: <CalendarClock className="h-4 w-4 text-indigo-500" /> },
       { href: "/resignation-letter", label: "Resignation Letter", icon: <DoorOpen className="h-4 w-4 text-red-500" /> },
       { href: "/interview", label: "Mock Interviews", icon: <Mic className="h-4 w-4" /> },
       { href: "/interview/cheat-sheet", label: "Cheat Sheet", icon: <FileSearch className="h-4 w-4" /> },
+      { href: "/behavioral-prep", label: "Behavioral Prep", icon: <BrainCircuit className="h-4 w-4 text-rose-500" /> },
       { href: "/interview/star-builder", label: "STAR Builder", icon: <Star className="h-4 w-4 text-yellow-500" /> },
       { href: "/interview/voice-coach", label: "Voice Coach", icon: <Mic className="h-4 w-4 text-green-500" /> },
       { href: "/interview/video-coach", label: "Video Coach", icon: <Video className="h-4 w-4 text-blue-500" /> },

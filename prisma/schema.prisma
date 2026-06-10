@@ -48,6 +48,9 @@ model User {
   careerPivots         CareerPivot[]
   onboardingPlans      OnboardingPlan[]
   resignationLetters   ResignationLetter[]
+  promotionStrategies  PromotionStrategy[]
+  freelanceProposals   FreelanceProposal[]
+  behavioralPreps      BehavioralPrep[]
   settings             UserSettings?
 
   exportRecords ExportRecord[]
@@ -395,6 +398,41 @@ model ResignationLetter {
   circumstance   String
   lastDay        String
   content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PromotionStrategy {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole     String
+  content        Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model FreelanceProposal {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectDetails String   @db.Text
+  rate           String
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BehavioralPrep {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        String
+  assessmentType String
+  content        Json
   createdAt      DateTime @default(now())
 
   @@index([userId])
