@@ -31,10 +31,17 @@ function normalizeSettings(settings) {
   };
 }
 
-export async function getUserSettings(userId) {
-  const { userId: authenticatedUserId } = await auth();
+function normalizeSettingsInput(data) {
+  return {
+    notifications: Boolean(data.notifications),
+    emailAlerts: Boolean(data.emailAlerts),
+  };
+}
 
-  if (!authenticatedUserId || authenticatedUserId !== userId) {
+export async function getUserSettings() {
+  const { userId } = await auth();
+
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -45,26 +52,17 @@ export async function getUserSettings(userId) {
       where: { userId: user.id },
     });
 
-    if (existingSettings) {
-      return normalizeSettings(existingSettings);
-    }
-
-    const settings = await db.userSettings.create({
-      data: { userId: user.id },
-    });
-
-    return normalizeSettings(settings);
+    return normalizeSettings(existingSettings);
   } catch (error) {
     console.error("[Settings Action] Error in getUserSettings:", error.message);
-    // Return default settings if DB call fails (e.g. table missing)
     return normalizeSettings(null);
   }
 }
 
-export async function updateUserSettings(userId, data) {
-  const { userId: authenticatedUserId } = await auth();
+export async function updateUserSettings(data) {
+  const { userId } = await auth();
 
-  if (!authenticatedUserId || authenticatedUserId !== userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
@@ -78,19 +76,15 @@ export async function updateUserSettings(userId, data) {
     const user = await getUserByClerkId(userId);
     const settingsData = validation.data;
 
-    const existingSettings = await db.userSettings.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!existingSettings) {
-      await db.userSettings.create({
-        data: { userId: user.id },
-      });
-    }
-
-    const settings = await db.userSettings.update({
-      where: { userId: user.id },
-      data: settingsData,
+    const settings = await db.userSettings.upsert({
+      where: {
+        userId: user.id,
+      },
+      create: {
+        userId: user.id,
+        ...settingsData,
+      },
+      update: settingsData,
     });
 
     revalidatePath("/settings");

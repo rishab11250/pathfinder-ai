@@ -32,7 +32,7 @@ export default function Footer() {
     <footer className="relative z-10 border-t border-border/50 pt-20 pb-8">
       <div className="container mx-auto px-4 md:px-6">
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 lg:gap-8 mb-16"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 lg:gap-8 mb-16"
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
@@ -102,6 +102,7 @@ export default function Footer() {
               <li><Link href="#features" className="text-muted-foreground/80 hover:text-primary transition-colors">Features</Link></li>
               <li><Link href="#how-it-works" className="text-muted-foreground/80 hover:text-primary transition-colors">How it Works</Link></li>
               <li><Link href="#stats" className="text-muted-foreground/80 hover:text-primary transition-colors">Success Stories</Link></li>
+               <li><Link href="/help" className="text-muted-foreground/80 hover:text-primary transition-colors">Help</Link></li>
               <li><Link href="#question" className="text-muted-foreground/80 hover:text-primary transition-colors">FAQ</Link></li>
             </ul>
           </motion.div>

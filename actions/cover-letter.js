@@ -98,36 +98,8 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
 
     return coverLetter;
   } catch (error) {
-    console.error("Error generating cover letter, using fallback:", error);
-    const errorCode = error?.code || "UNKNOWN";
-
-    const fallbackContent = `
-# Cover Letter
-
-Dear Hiring Manager,
-
-I am writing to express my interest in the ${data.jobTitle} position at ${data.companyName}. 
-
-Based on my background in the ${user.industry || "relevant"} industry and my experience, I believe I can bring valuable skills to your team. I would love the opportunity to discuss how my qualifications align with your needs.
-
-Thank you for your time and consideration.
-
-Sincerely,
-${user.name || "Candidate"}
-`;
-
-    const coverLetter = await db.coverLetter.create({
-      data: {
-        content: fallbackContent.trim(),
-        companyName,
-        jobTitle,
-        jobDescription,
-        status: "fallback",
-        userId: user.id,
-      },
-    });
-
-    return { ...coverLetter, _errorCode: errorCode };
+    console.error("Error generating cover letter:", error);
+    throw new Error(error?.message || "Failed to generate your cover letter. Please check your AI configuration.");
   }
 }
 
@@ -135,58 +107,81 @@ ${user.name || "Candidate"}
  * Fetches all cover letters for the signed-in user, newest first.
  */
 export async function getCoverLetters() {
-  const { userId } = await auth();
-  if (!userId) return [];
+  try {
+    const { userId } = await auth();
+    if (!userId) return [];
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) return [];
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) return [];
 
-  return db.coverLetter.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+    return db.coverLetter.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching cover letters:", error);
+    return [];
+  }
 }
 
 /**
  * Fetches a single cover letter by ID (ownership-checked).
  */
 export async function getCoverLetter(id) {
-  const { userId } = await auth();
-  if (!userId) return null;
+  try {
+    const { userId } = await auth();
+    if (!userId) return null;
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) return null;
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) return null;
 
-  return db.coverLetter.findFirst({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
+    return db.coverLetter.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching cover letter:", error);
+    return null;
+  }
 }
 
 /**
  *Deletes a specific cover letter record with strict ownership validation.
  */
 export async function deleteCoverLetter(id) {
-  const { userId } = await auth();
-  if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
+  try {
+    if (!id || typeof id !== "string" || id.trim().length === 0) {
+      return { success: false, errors: { _form: ["Invalid cover letter identifier."] } };
+    }
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) return { success: false, errors: { _form: ["User not found"] } };
+    const { userId } = await auth();
+    if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
 
-  await db.coverLetter.deleteMany({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
-  return { success: true };
+    const { count } = await db.coverLetter.deleteMany({
+      where: {
+        id: id.trim(),
+        userId: user.id,
+      },
+    });
+
+    if (count === 0) {
+      return { success: false, errors: { _form: ["Cover letter not found or already deleted."] } };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete cover letter:", error);
+    return { success: false, errors: { _form: [error.message || String(error)] } };
+  }
 }

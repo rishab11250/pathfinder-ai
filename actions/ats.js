@@ -3,6 +3,7 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { isFeatureEnabled } from "@/lib/ai-gating";
 import { ATS_ANALYSIS_CACHE_TTL_MS, cachedGenerateGeminiContent, generateCacheKey } from "@/lib/cache";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
@@ -16,6 +17,10 @@ import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
  */
 export async function analyzeATS(rawParams) {
   try {
+    if (!isFeatureEnabled("ats")) {
+      return { success: false, errors: { _form: ["ATS analysis feature is currently disabled (missing configuration)."] } };
+    }
+
     const { userId } = await auth();
 
     if (!userId) {
@@ -63,6 +68,18 @@ export async function analyzeATS(rawParams) {
   "suggestions": [
     { "category": "Keywords", "tip": "Add missing technical terms from the job description" }
   ],
+  "highlights": [
+    {
+      "type": "weak_impact",
+      "text": "exact sentence or phrase from the resumeContent that is weak, passive, or generic",
+      "suggestion": "specific coaching/rephrasing advice (e.g. use action verbs, quantify results)"
+    },
+    {
+      "type": "keyword_insertion",
+      "text": "exact heading or line from the resumeContent where missing technical keywords should logically be added",
+      "suggestion": "list of missing keywords and explanation of how to weave them in"
+    }
+  ],
   "overallFeedback": "string highlighting strengths and gaps"
 }
 
@@ -73,7 +90,7 @@ Scoring guidelines:
 - 76-90: Strong match
 - 91-100: Excellent match
 
-Be specific and actionable. Include at least 5 matched keywords (if present), at least 5 missing keywords, and at least 5 improvement suggestions.
+Be specific and actionable. Include at least 5 matched keywords (if present), at least 5 missing keywords, at least 5 improvement suggestions, and at least 3 to 6 highlights mapping to exact parts of the resumeContent.
 IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.`,
     });
 
@@ -97,7 +114,17 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.
 
     const matchedKeywords = Array.isArray(parsedAnalysis.matchedKeywords) ? parsedAnalysis.matchedKeywords.map(String) : [];
     const missingKeywords = Array.isArray(parsedAnalysis.missingKeywords) ? parsedAnalysis.missingKeywords.map(String) : [];
-    const suggestions = normalizeAtsSuggestions(parsedAnalysis.suggestions);
+    
+    const rawSuggestions = Array.isArray(parsedAnalysis.suggestions) ? parsedAnalysis.suggestions : [];
+    const rawHighlights = Array.isArray(parsedAnalysis.highlights) ? parsedAnalysis.highlights : [];
+    const highlightSuggestions = rawHighlights.map(h => ({
+      category: "highlight",
+      type: h.type || "weak_impact",
+      text: h.text || "",
+      tip: h.suggestion || h.tip || ""
+    })).filter(h => h.text.trim().length > 0);
+
+    const suggestions = normalizeAtsSuggestions([...rawSuggestions, ...highlightSuggestions]);
 
     const record = await db.atsAnalysis.create({
       data: {
@@ -171,22 +198,21 @@ export async function deleteATSAnalysis(id) {
       return { success: false, errors: { _form: ["User profile not found."] } };
     }
 
-    // Ensure the record exists and belongs to the requesting user before deleting.
-    const existing = await db.atsAnalysis.findUnique({ where: { id: id.trim() } });
-    if (!existing) {
-      return { success: false, errors: { _form: ["Analysis record not found."] } };
-    }
-
-    if (existing.userId !== user.id) {
-      return { success: false, errors: { _form: ["Unauthorized: you do not own this analysis."] } };
-    }
-
-    await db.atsAnalysis.deleteMany({
+    const { count } = await db.atsAnalysis.deleteMany({
       where: {
-        id: existing.id,
+        id: id.trim(),
         userId: user.id,
-      },
-    });
+        },
+      });
+
+    if (count === 0) {
+      return {
+        success: false,
+        errors: {
+          _form: ["Analysis record not found."],
+        },
+      };
+    }
 
     revalidatePath("/ats-analyzer");
     return { success: true };

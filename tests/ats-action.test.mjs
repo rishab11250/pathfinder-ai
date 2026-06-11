@@ -20,6 +20,10 @@ vi.mock("@/lib/prisma", () => ({
     atsAnalysis: {
       create: mocks.create,
     },
+    aiRateLimit: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockResolvedValue({}),
+    },
   },
 }));
 
@@ -61,6 +65,13 @@ describe("analyzeATS", () => {
           matchedKeywords: ["React", "Node.js"],
           missingKeywords: ["GraphQL"],
           suggestions: [{ category: "Skills", tip: "Add GraphQL" }],
+          highlights: [
+            {
+              type: "weak_impact",
+              text: "Experienced Developer...",
+              suggestion: "Quantify your achievements."
+            }
+          ],
           overallFeedback: "Great match!",
         }),
       },
