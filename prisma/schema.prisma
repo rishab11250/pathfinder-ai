@@ -273,11 +273,13 @@ model AiRateLimit {
   action    String
   windowStart DateTime
   count     Int      @default(1)
+  expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, action, windowStart])
   @@index([userId, action])
+  @@index([expiresAt])
 }
 
 model Roadmap {
