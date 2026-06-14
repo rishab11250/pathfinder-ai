@@ -28,9 +28,9 @@ function makeFakeRedisClient() {
     },
     eval(_script, { keys, arguments: args }) {
       const key = keys[0];
-      const now = Number(args[0]);
-      const limitPerMinute = Number(args[1]);
-      const burstCapacity = Number(args[2]);
+      const limitPerMinute = Number(args[0]);
+      const burstCapacity = Number(args[1]);
+      const now = Number(args[2]);
 
       let tokens = null;
       let lastRefillAt = now;
@@ -49,26 +49,38 @@ function makeFakeRedisClient() {
       }
 
       if (tokens == null) {
-        tokens = burstCapacity;
-        lastRefillAt = now;
+        const remainingTokens = Math.max(0, burstCapacity - 1);
+        data.set(
+          key,
+          JSON.stringify({ tokens: remainingTokens, lastRefillAt: now, limitPerMinute, burstCapacity })
+        );
+        return [1, remainingTokens, 0];
       }
 
       const elapsedMinutes = (now - lastRefillAt) / 60000;
-      tokens = Math.min(burstCapacity, tokens + elapsedMinutes * limitPerMinute);
+      const refillAmount = elapsedMinutes * limitPerMinute;
+      tokens = Math.min(burstCapacity, tokens + refillAmount);
       lastRefillAt = now;
 
-      let allowed = 0;
-      if (tokens >= 1) {
-        tokens -= 1;
-        allowed = 1;
+      if (tokens < 1) {
+        const missingTokens = 1 - tokens;
+        const retryAfterSeconds = limitPerMinute > 0
+          ? Math.max(1, Math.ceil((missingTokens / limitPerMinute) * 60))
+          : 60;
+        data.set(
+          key,
+          JSON.stringify({ tokens, lastRefillAt, limitPerMinute, burstCapacity })
+        );
+        return [0, 0, retryAfterSeconds];
       }
 
+      tokens -= 1;
       data.set(
         key,
         JSON.stringify({ tokens, lastRefillAt, limitPerMinute, burstCapacity })
       );
 
-      return [allowed, Math.floor(tokens), String(tokens)];
+      return [1, Math.floor(tokens), 0];
     },
   };
 }
