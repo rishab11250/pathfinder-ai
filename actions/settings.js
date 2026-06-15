@@ -42,16 +42,10 @@ export async function getUserSettings(userId) {
   try {
     const user = await getUserByClerkId(userId);
 
-    const existingSettings = await db.userSettings.findUnique({
+    const settings = await db.userSettings.upsert({
       where: { userId: user.id },
-    });
-
-    if (existingSettings) {
-      return normalizeSettings(existingSettings);
-    }
-
-    const settings = await db.userSettings.create({
-      data: { userId: user.id },
+      update: {},
+      create: { userId: user.id },
     });
 
     return normalizeSettings(settings);
@@ -73,19 +67,13 @@ export async function updateUserSettings(userId, data) {
     const user = await getUserByClerkId(userId);
     const settingsData = normalizeSettingsInput(data);
 
-    const existingSettings = await db.userSettings.findUnique({
+    const settings = await db.userSettings.upsert({
       where: { userId: user.id },
-    });
-
-    if (!existingSettings) {
-      await db.userSettings.create({
-        data: { userId: user.id },
-      });
-    }
-
-    const settings = await db.userSettings.update({
-      where: { userId: user.id },
-      data: settingsData,
+      update: settingsData,
+      create: { 
+        userId: user.id,
+        ...settingsData
+      },
     });
 
     revalidatePath("/settings");
