@@ -3,8 +3,14 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
+
+const ClerkUserButton = dynamic(
+  () => import("@clerk/nextjs").then((mod) => mod.UserButton),
+  { ssr: false }
+);
 import {
   LayoutDashboard,
   Bot,
@@ -274,7 +280,7 @@ export default function AppSidebar() {
           isOpen || isMobile ? "gap-3 p-3" : "justify-center p-2"
         )}>
           <div className="relative shrink-0">
-            <UserButton 
+            <ClerkUserButton 
               appearance={{ 
                 elements: { 
                   avatarBox: "w-9 h-9 rounded-xl ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all shadow-lg" 
