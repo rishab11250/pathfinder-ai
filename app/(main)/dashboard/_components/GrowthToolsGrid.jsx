@@ -34,7 +34,9 @@ import {
   Sparkles,
   ArrowRight,
   RocketIcon,
-  Crown
+  Crown,
+  Home,
+  Rocket
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -89,6 +91,8 @@ const TOOL_CATEGORIES = [
       { name: "Career Library", desc: "Guides and playbooks", icon: BookOpen, color: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20", href: "/career-library" },
       { name: "Founder Readiness", desc: "Startup evaluation", icon: RocketIcon, color: "bg-orange-500/10 text-orange-500 border-orange-500/20", href: "/founder-readiness" },
       { name: "Executive Presence", desc: "Command the room", icon: Crown, color: "bg-purple-500/10 text-purple-500 border-purple-500/20", href: "/executive-presence" },
+      { name: "Side Hustle Ideas", desc: "Micro-SaaS & Solopreneur", icon: Rocket, color: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", href: "/side-hustle" },
+      { name: "Remote Work Negotiator", desc: "Pitch remote transition", icon: Home, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/remote-work" },
     ]
   }
 ];
