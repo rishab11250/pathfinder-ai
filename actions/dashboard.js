@@ -13,8 +13,8 @@ import {
  * Generates industry insights using Gemini AI.
  * If AI generation fails, provides high-quality default fallback insights.
  */
-export async function generateAIInsights(industry, profile = null) {
-  return generateIndustryInsightData(industry, profile);
+export async function generateAIInsights(industry) {
+  return generateIndustryInsightData(industry);
 }
 
 /**
@@ -22,7 +22,7 @@ export async function generateAIInsights(industry, profile = null) {
  */
 export async function getIndustryInsights() {
   const { userId } = await auth();
-  if (!userId) return null;
+  if (!userId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -36,7 +36,7 @@ export async function getIndustryInsights() {
 
   try {
     if (isIndustryInsightStale(user.industryInsight)) {
-      const insights = await generateAIInsights(user.industry, user);
+      const insights = await generateAIInsights(user.industry);
       const nextUpdate = getIndustryInsightRefreshTime();
 
       const industryInsight = await db.industryInsight.upsert({
