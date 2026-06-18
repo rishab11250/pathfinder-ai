@@ -9,6 +9,7 @@ import { parseAIJson } from "@/lib/validate";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { createErrorResponse } from "@/lib/action-errors";
 
 export async function generateResumeContent(jobDescription) {
   const { userId } = await auth();
@@ -29,7 +30,7 @@ export async function generateResumeContent(jobDescription) {
   }
 
   const user = await getUserByClerkId(userId);
-  if (!user) return { success: false, errors: { _form: ["User not found"] } };
+  return createErrorResponse("User not found");
 
   const prompt = buildSecurePrompt({
     context: buildUserProfileContext(user),
@@ -96,7 +97,9 @@ export async function generateResumeContent(jobDescription) {
     return { success: true, data: record };
   } catch (error) {
     console.error("Resume Generation Error:", error);
-    return { success: false, errors: { _form: [error.message || "Failed to generate resume"] } };
+    return createErrorResponse(
+  error.message || "Failed to generate resume"
+);
   }
 }
 
