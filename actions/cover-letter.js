@@ -48,22 +48,19 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
   "body": "<2-3 paragraphs, professional tone, max 300 words>",
   "closing": "Sincerely,\\n<candidate name>"
 }`,
-      untrustedData: [
-        { label: "jobTitle", value: data.jobTitle, maxLength: 200 },
-        { label: "companyName", value: data.companyName, maxLength: 200 },
-        { label: "jobDescription", value: data.jobDescription, maxLength: 8000 },
-        { label: "jobTitle", value: jobTitle, maxLength: 200 },
-        { label: "companyName", value: companyName, maxLength: 200 },
-        { label: "candidateName", value: user.name || "Candidate", maxLength: 200 },
-        { label: "industry", value: user.industry || "Technology", maxLength: 200 },
-        { label: "experience", value: String(user.experience || "0") + " years", maxLength: 100 },
-        { label: "skills", value: user.skills?.join(", ") || "Not specified", maxLength: 1000 },
-        { label: "bio", value: user.bio || "Not specified", maxLength: 2000 },
-        { label: "jobDescription", value: jobDescription, maxLength: 8000 },
-      ],
-    });
+    untrustedData: [
+      { label: "jobTitle", value: jobTitle, maxLength: 200 },
+      { label: "companyName", value: companyName, maxLength: 200 },
+      { label: "jobDescription", value: jobDescription, maxLength: 8000 },
+      { label: "candidateName", value: user.name || "Candidate", maxLength: 200 },
+      { label: "industry", value: user.industry || "Technology", maxLength: 200 },
+      { label: "experience", value: String(user.experience || "0") + " years", maxLength: 100 },
+      { label: "skills", value: user.skills?.join(", ") || "Not specified", maxLength: 1000 },
+      { label: "bio", value: user.bio || "Not specified", maxLength: 2000 },
+    ],
+  });
 
-    const schemaDescription = SCHEMA_DESCRIPTIONS.coverLetter;
+  const schemaDescription = SCHEMA_DESCRIPTIONS.coverLetter;
 
     const result = await generateWithStructuredOutput({
       prompt,
