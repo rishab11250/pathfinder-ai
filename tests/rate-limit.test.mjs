@@ -39,7 +39,9 @@ function makeFakeRedisClient() {
     async del(key) {
       data.delete(key);
     },
-    eval(_script, { keys, arguments: args }) {
+    eval(_script, argObj) {
+      const { keys } = argObj;
+      const args = argObj.arguments;
       const key = keys[0];
       const limitPerMinute = Number(args[0]);
       const burstCapacity = Number(args[1]);
