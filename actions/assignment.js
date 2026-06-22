@@ -6,10 +6,11 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { getAuthenticatedUserId } from "@/lib/auth-context";
 import { USER_NOT_FOUND_RESPONSE } from "@/lib/user-not-found";
 
 export async function gradeAssignment(promptText, solutionText) {
-  const { userId } = await auth();
+  const userId = await getAuthenticatedUserId();
   if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
 
   const user = await db.user.findUnique(buildUserLookup(userId));
@@ -60,7 +61,7 @@ export async function gradeAssignment(promptText, solutionText) {
 }
 
 export async function getAssignmentGrades() {
-  const { userId } = await auth();
+  const userId = await getAuthenticatedUserId();
   if (!userId) return { success: false, data: [] };
 
   const user = await db.user.findUnique(buildUserLookup(userId));
