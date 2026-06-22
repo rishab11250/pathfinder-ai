@@ -112,13 +112,18 @@ describe("generateFounderReadiness", () => {
       response: {
         text: () => JSON.stringify({
           founderScore: 90,
-          strengths: ["Grit"],
-          blindSpots: [{ issue: "Sales", mitigation: "Hire" }],
-          businessIdeaFeedback: "Good.",
+          strengths: ["Excellent persistence and grit in challenging environments."],
+          blindSpots: [
+            { 
+              issue: "Direct sales experience", 
+              mitigation: "Hire a seasoned sales advisor to handle client outreach." 
+            }
+          ],
+          businessIdeaFeedback: "This is a highly viable business idea with strong market demand and clear differentiation in the industry.",
           ninetyDayRoadmap: [
-            { phase: "Month 1", actionItems: ["Act 1"] },
-            { phase: "Month 2", actionItems: ["Act 2"] },
-            { phase: "Month 3", actionItems: ["Act 3"] }
+            { phase: "Month 1", actionItems: ["Conduct initial customer discovery interviews."] },
+            { phase: "Month 2", actionItems: ["Build a minimal viable prototype for beta testing."] },
+            { phase: "Month 3", actionItems: ["Launch the product to early adopters and gather feedback."] }
           ]
         }),
       },
