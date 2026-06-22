@@ -65,6 +65,7 @@ export default function Quiz() {
   const sessionId = quizData?.sessionId || null;
 
   useEffect(() => {
+    if (questions && questions.length > 0) {
     if (questions.length > 0) {
       setAnswers(new Array(questions.length).fill(null));
     }
@@ -87,6 +88,8 @@ export default function Quiz() {
 
   const finishQuiz = async () => {
     try {
+      const target = sessionId || questions;
+      await saveQuizResultFn(target, answers, selectedCategory);
       await saveQuizResultFn(sessionId, answers, selectedCategory);
       toast.success("Quiz completed!");
     } catch (error) {

@@ -356,7 +356,7 @@ Rules:
 
   const restrictedCachedResponse = await getCachedResponse(
     cacheUser,
-    promptCheck.prompt
+    restrictedPrompt
   );
 
   if (restrictedCachedResponse) {

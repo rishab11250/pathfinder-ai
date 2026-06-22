@@ -633,6 +633,7 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
 /**
  * Saves a quiz result and generates AI-powered feedback if mistakes were made.
  */
+export async function saveQuizResult(sessionIdOrQuestions, answers, category = "Technical") {
 export async function saveQuizResult(sessionId, answers, category = "Technical") {
   try {
     const { userId } = await auth();
@@ -685,6 +686,24 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
 
     const sanitizedAnswers = Array.isArray(validatedAnswers)
       ? validatedAnswers.slice(0, questions.length)
+    let questions;
+    let cacheKey = null;
+
+    if (typeof sessionIdOrQuestions === "string") {
+      const sessionId = sessionIdOrQuestions;
+      cacheKey = generateCacheKey("quiz-session", userId, sessionId);
+      questions = await cacheStore.get(cacheKey);
+      if (!questions) {
+        throw new Error("Quiz session expired or not found. Please start a new quiz.");
+      }
+    } else if (Array.isArray(sessionIdOrQuestions)) {
+      questions = sessionIdOrQuestions;
+    } else {
+      throw new Error("Session ID is required.");
+    }
+
+    const sanitizedAnswers = Array.isArray(answers)
+      ? answers.slice(0, questions.length)
       : [];
 
     while (sanitizedAnswers.length < questions.length) {
@@ -737,7 +756,7 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
         task: "You are a supportive career mentor. The candidate completed a quiz. Provide an encouraging, actionable improvement tip (strictly max 2 sentences) recommending key learning areas. Be positive, warm, and professional. Do not refer to question indexes or speak critically.",
         untrustedData: [
           { label: "industry", value: user.industry || "software", maxLength: 200 },
-          { label: "category", value: validatedCategory, maxLength: 200 },
+          { label: "category", value: category, maxLength: 200 },
           { label: "score", value: String(computedScore), maxLength: 50 },
           { label: "wrongAnswers", value: wrongText, maxLength: 4000 },
         ],
@@ -749,7 +768,7 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
       } catch (e) {
         console.error("Failed to generate custom AI improvement tip:", e);
         const industryText = user.industry ? `in ${user.industry.toLowerCase()}` : "in your field";
-        improvementTip = `Focus on reviewing core ${validatedCategory.toLowerCase()} concepts and typical industry practices ${industryText} to strengthen your skills.`;
+        improvementTip = `Focus on reviewing core ${category.toLowerCase()} concepts and typical industry practices ${industryText} to strengthen your skills.`;
       }
     }
 
@@ -758,11 +777,14 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
         userId: user.id,
         quizScore: computedScore,
         questions: questionResults,
-        category: validatedCategory,
+        category: category,
         improvementTip,
       },
     });
 
+    if (cacheKey) {
+      await cacheStore.delete(cacheKey);
+    }
     // Delete session cache entry to prevent replay attack
     await cacheStore.delete(cacheKey);
 
@@ -778,6 +800,8 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
     };
   }
 }
+
+
 
 /**
  * Fetches all assessments for the signed-in user, newest first.

@@ -30,6 +30,11 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
+vi.mock("@/lib/rate-limit-actions", () => ({
+  checkRateLimit: mocks.checkRateLimit,
+  formatResetTime: mocks.formatResetTime,
+}));
+
 vi.mock("@/lib/gemini", () => ({
   generateGeminiContent: mocks.generateGeminiContent,
 }));
