@@ -1,12 +1,16 @@
 "use server";
 
 import { db } from "@/lib/prisma";
+import { logActionError } from "@/lib/action-logger";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { getHistoryRecords } from "@/lib/history-query";
 import { buildUserLookup } from "@/lib/user-query";
+import { buildHistoryResponse } from "@/lib/history-loader";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { USER_NOT_FOUND_RESPONSE } from "@/lib/user-not-found";
+import { CREATED_AT_DESC } from "@/lib/sort-config";
 
 export async function assessBurnout(symptoms, workload) {
   const { userId } = await auth();
@@ -63,15 +67,15 @@ export async function assessBurnout(symptoms, workload) {
 
 export async function getBurnoutAssessments() {
   const { userId } = await auth();
-  if (!userId) return { success: false, data: [] };
+  if (!userId) return EMPTY_HISTORY_RESPONSE;
 
   const user = await db.user.findUnique(buildUserLookup(userId));
   if (!user) return { success: false, data: [] };
 
-  const records = await db.burnoutAssessment.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const records = await getHistoryRecords(
+  db.burnout,
+  user.id
+);
 
-  return { success: true, data: records };
+  return buildHistoryResponse(records);
 }
