@@ -1,4 +1,5 @@
 "use server";
+import { createErrorResponse } from "@/lib/action-errors";
 
 import { db } from "@/lib/prisma";
 import { getUserByClerkId } from "@/lib/user";
@@ -6,13 +7,16 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
-
+import { getHistoryUserContext } from "@/lib/history-auth";
+async function getPerformanceReviewUser(userId) {
+  return getUserByClerkId(userId);
+}
 export async function generateSelfAssessment(achievements, challenges, goals) {
   const { userId } = await auth();
   if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
 
-  const user = await getUserByClerkId(userId);
-  if (!user) return { success: false, errors: { _form: ["User not found"] } };
+  const user = await getPerformanceReviewUser(userId);
+  if (!user) return createErrorResponse("User not found");
 
   if (!achievements || !goals) {
     return { success: false, errors: { _form: ["Achievements and goals are required."] } };
@@ -69,7 +73,7 @@ export async function getPerformanceReviews() {
   const { userId } = await auth();
   if (!userId) return { success: false, data: [] };
 
-  const user = await getUserByClerkId(userId);
+  const user = await getPerformanceReviewUser(userId);
   if (!user) return { success: false, data: [] };
 
   const records = await db.performanceReview.findMany({

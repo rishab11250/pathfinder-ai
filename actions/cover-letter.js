@@ -1,7 +1,9 @@
 "use server";
+import { createErrorResponse } from "@/lib/action-errors";
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
@@ -9,12 +11,28 @@ import { validateInput, validateOutput } from "@/lib/validate";
 import { coverLetterInputSchema } from "@/lib/schemas/forms";
 import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { JOB_DESCRIPTION_MAX_LENGTH } from "@/lib/input-limits";
+
+const FALLBACK_COVER_LETTER = `Dear Hiring Manager,
+
+I am writing to express my strong interest in the open position at your company. With a solid foundation of relevant skills and a proven track record of delivering high-quality results, I am confident in my ability to make an immediate impact on your team.
+
+Throughout my career, I have consistently demonstrated a commitment to excellence and a passion for continuous learning. I am particularly drawn to your company's mission and the innovative work you are doing in the industry. I believe my background aligns perfectly with the requirements of this role.
+
+Thank you for considering my application. I have attached my resume for your review and welcome the opportunity to discuss how my experience and skills would be an asset to your organization.
+
+Sincerely,
+[Your Name]`;
 
 /**
  * Generates a professional cover letter using Gemini AI with structured output validation.
  * Falls back to a safe template if AI generation or validation fails.
  */
 export async function generateCoverLetter(data) {
+  let coverLetterUser;
+  let companyName;
+  let jobTitle;
+  let jobDescription;
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
@@ -30,9 +48,13 @@ export async function generateCoverLetter(data) {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-    if (!user) throw new Error("User not found");
+    if (!user) throw new Error(USER_NOT_FOUND_MESSAGE);
+    coverLetterUser = user;
 
-    const { jobTitle, companyName, jobDescription } = validation.data;
+    const parsedData = validation.data;
+    companyName = parsedData.companyName;
+    jobTitle = parsedData.jobTitle;
+    jobDescription = parsedData.jobDescription;
 
     const prompt = buildSecurePrompt({
       context: `${buildUserProfileContext(user)}\n\nYou are a professional career coach and cover letter writer.`,
@@ -93,15 +115,22 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
       },
     });
 
-    return coverLetter;
+    return { ...coverLetter, isFallback: false };
   } catch (error) {
-    console.error("Error generating cover letter:", error);
+    console.error("Error generating cover letter, using fallback:", error);
     if (process.env.NODE_ENV === "test") {
       throw error;
     }
+    
+    // We do not save fallback cover letters to the DB
     return {
-      success: false,
-      error: error?.message || "Failed to generate your cover letter. Please check your AI configuration."
+      content: FALLBACK_COVER_LETTER,
+      companyName: companyName ?? null,
+      jobTitle: jobTitle ?? null,
+      jobDescription: jobDescription ?? null,
+      status: "fallback",
+      userId: coverLetterUser?.id ?? null,
+      isFallback: true
     };
   }
 }
@@ -169,7 +198,7 @@ export async function deleteCoverLetter(id) {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-    if (!user) return { success: false, errors: { _form: ["User not found"] } };
+    if (!user) return createErrorResponse("User not found");
 
     const { count } = await db.coverLetter.deleteMany({
       where: {

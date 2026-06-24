@@ -6,18 +6,56 @@ import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { validateOutput } from "@/lib/validate";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
 import { careerRoadmapOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 const ROADMAP_SYSTEM_CONTEXT = `You are a senior career strategist and technical mentor. Your expertise is creating personalized, actionable career roadmaps that break down long-term goals into concrete milestones. Each milestone should be a stepping stone that builds on the previous one, with clear skills to develop and a realistic time frame.`;
+
+const FALLBACK_ROADMAP = {
+  milestones: [
+    {
+      title: "Assess Current Skills",
+      description: "Take inventory of your current technical and soft skills to identify gaps.",
+      skillsToLearn: ["Self-Assessment", "Market Research"],
+      estimatedDuration: "1-2 weeks",
+      priority: "high"
+    },
+    {
+      title: "Core Skill Development",
+      description: "Focus on learning the primary skills required for your target role.",
+      skillsToLearn: ["Core Domain Skills", "Communication"],
+      estimatedDuration: "2-3 months",
+      priority: "high"
+    },
+    {
+      title: "Build Portfolio Projects",
+      description: "Apply what you've learned to build 2-3 substantial projects to demonstrate your abilities.",
+      skillsToLearn: ["Project Management", "Technical Implementation"],
+      estimatedDuration: "1-2 months",
+      priority: "high"
+    },
+    {
+      title: "Networking and Outreach",
+      description: "Connect with professionals in your target role and industry.",
+      skillsToLearn: ["Networking", "Personal Branding"],
+      estimatedDuration: "Ongoing",
+      priority: "medium"
+    }
+  ],
+  totalEstimatedTime: "6-12 months",
+  summary: "A general framework for career transition and skill development. Please configure AI to receive a personalized roadmap."
+};
 
 /**
  * Generates a personalized career roadmap using Gemini AI with structured output validation.
  * Builds the roadmap from the user's existing profile (skills, goals, target role, industry).
  */
 export async function generateCareerRoadmap() {
+  let authUserId;
   try {
     const { userId } = await auth();
+    authUserId = userId;
     if (!userId) throw new Error("Unauthorized");
 
     const limit = await checkRateLimit(userId, "roadmap");
@@ -28,7 +66,7 @@ export async function generateCareerRoadmap() {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-    if (!user) throw new Error("User not found");
+    if (!user) throw new Error(USER_NOT_FOUND_MESSAGE);
 
     const prompt = buildSecurePrompt({
       context: `${buildUserProfileContext(user)}\n\n${ROADMAP_SYSTEM_CONTEXT}`,
@@ -92,15 +130,20 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
       },
     });
 
-    return roadmap;
+    // Return with success flag
+    const returnData = { ...roadmap, isFallback: false };
+    return returnData;
   } catch (error) {
-    console.error("Error generating career roadmap:", error);
+    console.error("Error generating career roadmap, using fallback:", error);
     if (process.env.NODE_ENV === "test") {
       throw error;
     }
+    
+    // We don't save the fallback to the DB so they can try again later
     return {
-      success: false,
-      error: error?.message || "Failed to generate your career roadmap. Please check your AI configuration."
+      content: FALLBACK_ROADMAP,
+      userId: authUserId ?? null,
+      isFallback: true
     };
   }
 }

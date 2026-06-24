@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { isValidQuizQuestions } from "@/lib/type-guards";
 import {
   Card,
   CardContent,
@@ -60,11 +61,15 @@ export default function Quiz() {
     setData: setResultData,
   } = useFetch(saveQuizResult);
 
+  const questions = quizData?.questions || [];
+  const sessionId = quizData?.sessionId || null;
+
   useEffect(() => {
-    if (quizData) {
-      setAnswers(new Array(quizData.length).fill(null));
+    if (questions && questions.length > 0) {
+    if (questions.length > 0) {
+      setAnswers(new Array(questions.length).fill(null));
     }
-  }, [quizData]);
+  }, [quizData, questions]);
 
   const handleAnswer = (answer) => {
     const newAnswers = [...answers];
@@ -73,7 +78,7 @@ export default function Quiz() {
   };
 
   const handleNext = () => {
-    if (currentQuestion < quizData.length - 1) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setShowExplanation(false);
     } else {
@@ -83,7 +88,9 @@ export default function Quiz() {
 
   const finishQuiz = async () => {
     try {
-      await saveQuizResultFn(quizData, answers, selectedCategory);
+      const target = sessionId || questions;
+      await saveQuizResultFn(target, answers, selectedCategory);
+      await saveQuizResultFn(sessionId, answers, selectedCategory);
       toast.success("Quiz completed!");
     } catch (error) {
       toast.error(error.message || "Failed to save quiz results");
@@ -99,10 +106,14 @@ export default function Quiz() {
   };
 
   if (generatingQuiz) {
-    return <BarLoader className="mt-4" width={"100%"} color="gray" />;
+    return (
+      <Card className="mx-2 flex flex-col items-center justify-center py-10">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+        <CardDescription>Generating your personalized quiz questions...</CardDescription>
+      </Card>
+    );
   }
 
-  // Show results if quiz is completed
   if (resultData) {
     return (
       <div className="mx-2">
@@ -164,13 +175,43 @@ export default function Quiz() {
     );
   }
 
-  const question = quizData[currentQuestion];
+  const isQuizValid = isValidQuizQuestions(quizData);
+  if (!isQuizValid) {
+    return (
+      <Card className="mx-2 border-destructive/20 bg-destructive/5 text-center">
+        <CardHeader>
+          <CardTitle className="text-destructive font-bold">Error Loading Quiz</CardTitle>
+          <CardDescription>
+            The generated quiz questions did not match the expected format.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Please try starting a new quiz. If the issue persists, contact support.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={startNewQuiz} className="w-full">
+            Start New Quiz
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  const question = questions[currentQuestion];
+  const isFallback = quizData.isFallback;
 
   return (
     <Card className="mx-2">
       <CardHeader>
+        {isFallback && (
+          <div className="mb-4 p-4 bg-yellow-50 text-yellow-900 border border-yellow-200 rounded-lg text-sm">
+            <strong>Note:</strong> AI generation is currently unavailable. Using generic fallback questions.
+          </div>
+        )}
         <CardTitle className="flex items-center justify-between">
-          <span>Question {currentQuestion + 1} of {quizData.length}</span>
+          <span>Question {currentQuestion + 1} of {questions.length}</span>
           <span className="text-xs font-normal text-muted-foreground px-2 py-1 bg-muted rounded-full">
             {selectedCategory}
           </span>
@@ -216,7 +257,7 @@ export default function Quiz() {
           {savingResult && (
             <BarLoader className="mt-4" width={"100%"} color="gray" />
           )}
-          {currentQuestion < quizData.length - 1
+          {currentQuestion < questions.length - 1
             ? "Next Question"
             : "Finish Quiz"}
         </Button>

@@ -6,6 +6,12 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
+import {
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const ClerkUserButton = dynamic(
   () => import("@clerk/nextjs").then((mod) => mod.UserButton),
@@ -145,7 +151,6 @@ const MENU_GROUPS = [
       { href: "/manager-readme", label: "Manager README Builder", icon: <BookOpen className="h-4 w-4 text-cyan-500" />, shortcut: "" },
       { href: "/founder-readiness", label: "Startup Founder Readiness", icon: <RocketIcon className="h-4 w-4 text-orange-500" />, shortcut: "" },
       { href: "/executive-presence", label: "Executive Presence Coach", icon: <Crown className="h-4 w-4 text-purple-500" />, shortcut: "" },
-      { href: "/bullet-rewriter", label: "Bullet Rewriter", icon: <FileText className="h-4 w-4 text-blue-400" />, shortcut: "" },
     ]
   },
   {
@@ -233,7 +238,9 @@ export default function AppSidebar() {
             <div className="space-y-1">
               {group.items.map((link) => {
                 const isActive = pathname === link.href || (link.href !== "/dashboard" && pathname.startsWith(link.href));
-                return (
+                
+                // Tooltip wrapper for collapsed state
+                const linkElement = (
                   <Link 
                     key={`${link.href}-${link.label}`} 
                     href={link.href} 
@@ -278,6 +285,24 @@ export default function AppSidebar() {
                     </div>
                   </Link>
                 );
+
+                // If sidebar is collapsed, wrap with Tooltip
+                if (!isOpen && !isMobile) {
+                  return (
+                    <TooltipProvider key={`${link.href}-${link.label}`}>
+                      <TooltipRoot delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          {linkElement}
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{link.label}</p>
+                        </TooltipContent>
+                      </TooltipRoot>
+                    </TooltipProvider>
+                  );
+                }
+
+                return linkElement;
               })}
             </div>
           </div>

@@ -126,7 +126,7 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
       generateFn: async (p) => {
         const raw = p === prompt
           ? await cachedGenerateGeminiContent(p, {}, {
-              key: generateCacheKey("improve", userId, current, type, user.industry),
+              key: generateCacheKey("improve", user.id, buildUserProfileContext(user), current, type),
               ttl: RESUME_IMPROVEMENT_CACHE_TTL_MS,
             })
           : await generateGeminiContent(p);
@@ -151,3 +151,4 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
     return { success: false, errors: { _form: [error?.message || "AI pipeline configuration encountered an error."] } };
   }
 }
+
