@@ -272,8 +272,8 @@ model UserSettings {
   largeButtonsMode       Boolean  @default(false)
   highContrastMode       Boolean  @default(false)
   speechSpeed            Float    @default(1.0)
-  preferredLanguage      String   @default("en")
-  preferredVoiceLanguage String   @default("en")
+  preferredLanguage      String   @default("en") // Note: Validated via Zod. Keep new languages in sync with lib/schemas/forms.js to prevent DB/schema/UI drift.
+  preferredVoiceLanguage String   @default("en") // Note: Validated via Zod. Keep new languages in sync with lib/schemas/forms.js to prevent DB/schema/UI drift.
   oneTapCameraMode       Boolean  @default(false)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
