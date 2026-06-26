@@ -734,10 +734,6 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
       },
     });
 
-    if (cacheKey) {
-      await cacheStore.delete(cacheKey);
-    }
-
     return assessment;
   } catch (error) {
     console.error("Error saving assessment to database:", error);
