@@ -9,12 +9,11 @@ import { toast } from "sonner";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useTranslation } from "@/hooks/use-translation";
 
-// A mock question or we could let the user select one. 
-// For V1, we'll use a standard behavioral question.
-const QUESTION = "Tell me about a time when you had to overcome a significant technical challenge at work.";
+// For V1, we'll use a standard behavioral question from translations.
 
 export default function VoiceCoachPage() {
   const { t } = useTranslation();
+  const QUESTION = t("interviewQuestion");
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [evaluating, setEvaluating] = useState(false);
@@ -109,9 +108,10 @@ export default function VoiceCoachPage() {
             <Mic className="h-3 w-3" />
             {t("voiceCoach")}
           </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground mb-4">
-            {t("speakWith")} <span className="text-gradient-primary">{t("confidence")}</span>
-          </h1>
+          <h1 
+            className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground mb-4"
+            dangerouslySetInnerHTML={{ __html: t("speakWithConfidence") }}
+          />
           <p className="text-muted-foreground text-sm md:text-base font-medium max-w-2xl mx-auto">
             {t("practiceSkills")}
           </p>
