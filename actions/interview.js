@@ -577,6 +577,7 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
       if (!quizValidation.success || !quizValidation.data?.questions?.length) {
         throw new Error("Invalid questions structure received from AI.");
       }
+      questions = quizValidation.data.questions.slice(0, 10);
 
       questions = quizValidation.data.questions.slice(0, 10);
       isFallback = false;
@@ -604,11 +605,66 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
+    if (!sessionId) {
+      throw new Error("Session ID is required.");
+    }
+
+    const cacheKey = generateCacheKey("quiz-session", userId, sessionId);
+    const questions = await cacheStore.get(cacheKey);
+    if (!questions) {
+      throw new Error("Quiz session expired or not found. Please start a new quiz.");
+    }
+
+    const validation = validateInput(quizResultSaveSchema, { questions, answers, category });
+    const validation = validateInput(quizResultSaveSessionSchema, { sessionId, answers, category });
+    if (!validation.success) return { success: false, errors: validation.errors };
+
+    const {
+      sessionId: validatedSessionId,
+      answers: validatedAnswers,
+      category: validatedCategory,
+    } = validation.data;
+
+    const feedbackLimit = await checkRateLimit(userId, "quizFeedback");
+    if (!feedbackLimit.allowed) {
+      throw new Error(`Quiz feedback limit reached. Resets in ${formatResetTime(feedbackLimit.resetAt)}.`);
+    }
+
+    const cacheKey = generateCacheKey("quiz-session", userId, validatedSessionId);
+    const questions = await cacheStore.get(cacheKey);
+
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      throw new Error("Quiz session expired or not found. Please start a new quiz.");
+    }
+    const {
+      sessionId: validatedSessionId,
+      answers: validatedAnswers,
+      category: validatedCategory,
+    } = validation.data;
+
+    const cacheStore = getCacheStore();
+    const cacheKey = generateCacheKey("quiz:session", userId, validatedSessionId);
+    const questions = await cacheStore.get(cacheKey);
+
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      throw new Error("Quiz session not found or expired.");
+    }
+
+    if (questions.length !== validatedAnswers.length) {
+      throw new Error("Answers must match the number of questions.");
+    }
+
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
     if (!user) throw new Error("User not found");
 
+    const profileContext = buildUserProfileContext(user);
+
+    // Map user answers to question outcomes and compute score server-side
+    const sanitizedAnswers = Array.isArray(validatedAnswers)
+      ? validatedAnswers.slice(0, questions.length)
+    let questions;
     let questions = [];
     let sessionId = null;
     let cacheKey = null;

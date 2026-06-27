@@ -25,6 +25,11 @@ vi.mock("@clerk/nextjs/server", () => ({
 vi.mock("@/lib/prisma", () => ({
   db: {
     user: {
+      findUnique: async (args) => {
+        const res1 = await mocks.userFindUnique(args);
+        if (res1 !== undefined) return res1;
+        return mocks.findUniqueUser(args);
+      },
       findUnique: vi.fn((...args) => {
         const res1 = mocks.userFindUnique(...args);
         const res2 = mocks.findUniqueUser(...args);
@@ -65,6 +70,13 @@ vi.mock("@/lib/cache", async () => {
     getCacheStore: () => mockCacheStore,
   };
 });
+
+vi.mock("@/lib/rate-limit-actions", () => ({
+  checkRateLimit: mocks.checkRateLimit,
+  formatResetTime: mocks.formatResetTime,
+}));
+
+import { generateQuiz, saveQuizResult, getAssessment } from "../actions/interview.js";
 
 describe("interview actions", () => {
   beforeEach(() => {
@@ -202,6 +214,26 @@ describe("interview actions", () => {
       const result = await getAssessment("assessment-1");
       expect(result).toBeNull();
       expect(mocks.userFindUnique).not.toHaveBeenCalled();
+    });
+
+    it("returns null if user is not found in database", async () => {
+      mocks.auth.mockResolvedValue({ userId: "clerk-1" });
+      mocks.userFindUnique.mockResolvedValue(null);
+      const result = await getAssessment("assessment-1");
+      expect(result).toBeNull();
+    });
+
+    it("fetches assessment using findFirst with id and userId", async () => {
+      const mockUser = { id: "user-1", clerkUserId: "clerk-1" };
+      const mockAssessment = { id: "assessment-1", userId: "user-1" };
+
+      mocks.auth.mockResolvedValue({ userId: "clerk-1" });
+      mocks.userFindUnique.mockResolvedValue(mockUser);
+      mocks.assessmentFindFirst.mockResolvedValue(mockAssessment);
+
+      const result = await getAssessment("assessment-1");
+
+      expect(mocks.findUniqueUser).not.toHaveBeenCalled();
     });
 
     it("returns null if user is not found in database", async () => {
