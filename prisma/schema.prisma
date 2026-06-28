@@ -49,6 +49,7 @@ model User {
   coverLetter     CoverLetter[]
   conversations   Conversation[]
   resume          Resume?
+  portfolio       Portfolio?
   industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
   atsAnalyses     AtsAnalysis[]
   settings        UserSettings?
@@ -756,3 +757,15 @@ model ExecutivePresence {
 
   @@index([userId])
 }
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     Json     // hero, about, experience, projects, skills, contact
+  theme       String   @default("modern")
+  slug        String   @unique
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
