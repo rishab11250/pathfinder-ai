@@ -425,9 +425,10 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 GEMINI_API_KEY=AIza...
 
 # Inngest (Background Job Processing)
-# Without these, background jobs like generateIndustryInsights silently never fire.
-# For local dev set both to: local
-# For production get them from: https://app.inngest.com → your app → Manage
+# Required in production for background jobs (industry insights, rate limit cleanup, etc.)
+# Optional in development - the app will start without these keys
+# For local development with Inngest dev server, set both to: local
+# For production, get keys from: https://app.inngest.com → your app → Manage
 INNGEST_EVENT_KEY=your_inngest_event_key
 INNGEST_SIGNING_KEY=your_inngest_signing_key
 
@@ -455,6 +456,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | ✅ | Redirect destination after sign-in |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | ✅ | Redirect destination after sign-up |
 | `GEMINI_API_KEY` | ✅ | Google Gemini API key for all AI features |
+| `INNGEST_EVENT_KEY` | ✅ (prod) | Inngest event key for background job processing (required in production) |
+| `INNGEST_SIGNING_KEY` | ✅ (prod) | Inngest signing key for background job processing (required in production) |
 | `REDIS_URL` | ⚪ | Redis connection string for production rate limiting |
 | `RATE_LIMIT_STORE` | ⚪ | Rate limiter driver (`auto` or `redis`) |
 | `NEXT_PUBLIC_APP_URL` | ⚪ | Base URL used in production builds |
