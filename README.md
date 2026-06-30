@@ -383,6 +383,8 @@ Open [http://localhost:3000](http://localhost:3000). You're in.
 
 > **💡 Keyless Mode:** Running without Clerk keys? The app runs safely in keyless mode — auth routes redirect gracefully and protected pages won't crash. Perfect for UI-only development.
 
+> **⚠️ Development Authentication Bypass:** For local development without Clerk setup, you can set `SKIP_AUTH=true` to bypass authentication. This is ONLY allowed on localhost in development mode and will throw an error in production or on non-localhost hosts. See the [Environment Variables](#-environment-variables) section for details.
+
 ---
 
 <!-- Fix: Corrected step numbering from 5.5 to 6 for proper sequential numbering -->
@@ -441,6 +443,18 @@ RATE_LIMIT_STORE=auto
 # APP (OPTIONAL)
 # ─────────────────────────────────────────────
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# ─────────────────────────────────────────────
+# DEVELOPMENT AUTHENTICATION BYPASS (OPTIONAL)
+# ─────────────────────────────────────────────
+# ⚠️ SECURITY WARNING: Never set this to "true" in production!
+# When set to "true", authentication is bypassed for local development only.
+# This requires:
+# - NODE_ENV=development
+# - Request from localhost or 127.0.0.1
+# The application will throw an error if these conditions are not met.
+# Remove this variable or set to "false" for production deployments.
+SKIP_AUTH=false
 ```
 
 > **Rate limiting in production:** Redis is required for consistent multi-instance throttling. In production, set `REDIS_URL` and keep `RATE_LIMIT_STORE=auto` (or set `RATE_LIMIT_STORE=redis`).
@@ -458,6 +472,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 | `REDIS_URL` | ⚪ | Redis connection string for production rate limiting |
 | `RATE_LIMIT_STORE` | ⚪ | Rate limiter driver (`auto` or `redis`) |
 | `NEXT_PUBLIC_APP_URL` | ⚪ | Base URL used in production builds |
+| `SKIP_AUTH` | ⚪ | Development-only auth bypass (NEVER use in production) |
 
 ---
 
