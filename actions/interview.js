@@ -10,10 +10,10 @@ import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { parseAIJson } from "@/lib/validate";
 import { validateInput, validateOutput } from "@/lib/validate";
-import { quizCategorySchema, quizResultSaveSchema } from "@/lib/schemas/forms";
 import { quizCategorySchema, quizResultSaveSchema, quizResultSaveSessionSchema } from "@/lib/schemas/forms";
 import { interviewQuestionsOutputSchema, voiceFeedbackOutputSchema, videoFeedbackOutputSchema } from "@/lib/schemas";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { translations } from "@/lib/translations";
 
 // Fallback MCQ questions in case Gemini generation fails, categorized by industry
 const TECH_FALLBACK_QUESTIONS = [
@@ -482,6 +482,32 @@ const FallbackQuizPool = {
 };
 
 /**
+ * Returns an array of question strings for the voice/video coach,
+ * selected from the industry-specific fallback pool.
+ * For non-English locales with a translated question, that translation is
+ * prepended to the pool so localization is a layer on top rather than
+ * replacing the industry-matched questions.
+ */
+export async function getCoachQuestions(locale = "en") {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+    select: { industry: true },
+  });
+  const key = user?.industry?.toLowerCase() || "tech";
+  const pool = (FallbackQuizPool[key] || TECH_FALLBACK_QUESTIONS).map((q) => q.question);
+
+  if (locale !== "en" && translations[locale]?.interviewQuestion) {
+    const localized = translations[locale].interviewQuestion;
+    return [localized, ...pool.filter((q) => q !== localized)];
+  }
+
+  return pool;
+}
+
+/**
  * Generates 10 unique MCQ questions based on user's industry, skills, and quiz category.
  */
 export async function generateQuiz(category = "Technical") {
@@ -589,15 +615,14 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
       questions = quizValidation.data.questions.slice(0, 10);
       isFallback = false;
     } catch (error) {
-    return handleServerError(error, "interview");
-  }
+      return handleServerError(error, "interview");
+    }
 
     const sessionId = crypto.randomUUID();
     const cacheStore = getCacheStore();
     const cacheKey = generateCacheKey("quiz-session", userId, sessionId);
     await cacheStore.set(cacheKey, questions, QUIZ_CACHE_TTL_MS);
 
-    return { sessionId, questions };
     return { sessionId, questions, isFallback };
   } catch (error) {
     console.error("Quiz generation top-level error:", error);
@@ -650,33 +675,10 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) throw new Error("User not found");
-
-    let questions = [];
-    let sessionId = null;
-    let cacheKey = null;
-    const cacheStore = getCacheStore();
-
-    if (Array.isArray(sessionIdOrQuestions)) {
-      questions = sessionIdOrQuestions;
-      const validation = validateInput(quizResultSaveSchema, { questions, answers, category });
-      if (!validation.success) return { success: false, errors: validation.errors };
-    } else {
-      sessionId = sessionIdOrQuestions;
-      if (!sessionId) {
-        throw new Error("Session ID is required.");
-      }
-      cacheKey = generateCacheKey("quiz-session", userId, sessionId);
-      questions = await cacheStore.get(cacheKey);
-      if (!questions) {
-        throw new Error("Quiz session expired or not found. Please start a new quiz.");
-      }
-      // Delete quiz session immediately to prevent replay attacks
-      await cacheStore.delete(cacheKey);
+    if (!sessionId) {
+      throw new Error("Session ID is required.");
     }
+
     const validation = validateInput(quizResultSaveSessionSchema, { sessionId, answers, category });
     if (!validation.success) return { success: false, errors: validation.errors };
 
@@ -694,8 +696,29 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
     if (!feedbackLimit.allowed) {
       throw new Error(`Quiz feedback limit reached. Resets in ${formatResetTime(feedbackLimit.resetAt)}.`);
     }
-    const sanitizedAnswers = Array.isArray(answers)
-      ? answers.slice(0, questions.length)
+
+    const cacheStore = getCacheStore();
+    const cacheKey = generateCacheKey("quiz-session", userId, validatedSessionId);
+    const questions = await cacheStore.get(cacheKey);
+
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      throw new Error("Quiz session expired or not found. Please start a new quiz.");
+    }
+
+    if (questions.length !== validatedAnswers.length) {
+      throw new Error("Answers must match the number of questions.");
+    }
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
+    const profileContext = buildUserProfileContext(user);
+
+    // Map user answers to question outcomes and compute score server-side
+    const sanitizedAnswers = Array.isArray(validatedAnswers)
+      ? validatedAnswers.slice(0, questions.length)
       : [];
 
     while (sanitizedAnswers.length < questions.length) {
@@ -737,7 +760,6 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
       : 0;
 
     let improvementTip = null;
-    const profileContext = buildUserProfileContext(user);
 
     if (wrongAnswers.length > 0) {
       const wrongText = wrongAnswers
@@ -752,6 +774,7 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
           { label: "industry", value: user.industry || "software", maxLength: 200 },
           { label: "category", value: category, maxLength: 200 },
           { label: "score", value: String(computedScore), maxLength: 50 },
+          { label: "category", value: validatedCategory, maxLength: 200 },
           { label: "score", value: String(score), maxLength: 50 },
           { label: "wrongAnswers", value: wrongText, maxLength: 4000 },
         ],
@@ -767,6 +790,8 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
       }
     return handleServerError(e, "interview");
   }
+        improvementTip = `Focus on reviewing core ${validatedCategory.toLowerCase()} concepts and typical industry practices ${industryText} to strengthen your skills.`;
+      }
     }
 
     const assessment = await db.assessment.create({
@@ -776,6 +801,7 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
         questions: questionResults,
         category: category,
         category,
+        category: validatedCategory,
         improvementTip,
       },
     });
@@ -783,6 +809,7 @@ export async function saveQuizResult(sessionIdOrQuestions, answers, category = "
     if (isCached && cacheKey) {
       await cacheStore.delete(cacheKey);
     }
+    await cacheStore.delete(cacheKey);
 
     return assessment;
   } catch (error) {

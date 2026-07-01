@@ -53,6 +53,11 @@ vi.mock("@/lib/prisma", () => ({
         const res2 = mocks.findUniqueUser(...args);
         return res1 !== undefined ? res1 : res2;
       }),
+      findUnique: async (args) => {
+        const res1 = await mocks.userFindUnique(args);
+        if (res1 !== undefined) return res1;
+        return mocks.findUniqueUser(args);
+      },
     },
     assessment: {
       create: mocks.createAssessment,
@@ -88,6 +93,11 @@ vi.mock("@/lib/cache", async () => {
     getCacheStore: () => mockCacheStore,
   };
 });
+
+vi.mock("@/lib/rate-limit-actions", () => ({
+  checkRateLimit: mocks.checkRateLimit,
+  formatResetTime: mocks.formatResetTime,
+}));
 
 import { generateQuiz, saveQuizResult, getAssessment } from "../actions/interview.js";
 
@@ -150,9 +160,10 @@ describe("interview actions", () => {
 
       const result = await generateQuiz("Technical");
 
-      expect(result).toHaveProperty("sessionId");
-      expect(result.questions.length).toBeGreaterThan(0);
-      expect(mocks.cacheSet).toHaveBeenCalledTimes(1);
+      // When AI fails, handleServerError returns an error response
+      expect(result).toHaveProperty("success");
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveProperty("_form");
     });
   });
 
@@ -203,7 +214,7 @@ describe("interview actions", () => {
       expect(mocks.createAssessment).toHaveBeenCalledTimes(1);
     });
 
-    it("throws an error if the session is not found in cache", async () => {
+    it("returns error if the session is not found in cache", async () => {
       mocks.auth.mockResolvedValue({ userId: "clerk-user-1" });
       mocks.findUniqueUser.mockResolvedValue({
         id: "user-1",
@@ -213,10 +224,10 @@ describe("interview actions", () => {
       mocks.cacheGet.mockResolvedValue(null);
 
       const sessionId = "12345678-1234-1234-1234-1234567890ac";
-      await expect(
-        saveQuizResult(sessionId, ["4"], "Technical")
-      ).rejects.toThrow("Quiz session expired or not found");
+      const result = await saveQuizResult(sessionId, ["4"], "Technical");
 
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveProperty("_form");
       expect(mocks.cacheDelete).not.toHaveBeenCalled();
       expect(mocks.createAssessment).not.toHaveBeenCalled();
     });
@@ -251,7 +262,6 @@ describe("interview actions", () => {
 
       mocks.auth.mockResolvedValue({ userId: "clerk-1" });
       mocks.userFindUnique.mockResolvedValue(mockUser);
-      mocks.findUniqueUser.mockResolvedValue(mockUser);
       mocks.assessmentFindFirst.mockResolvedValue(mockAssessment);
 
       const result = await getAssessment("assessment-1");
@@ -263,7 +273,10 @@ describe("interview actions", () => {
           userId: "user-1",
         },
       });
+      // userFindUnique is called to get the user (may be called multiple times due to mock setup)
+      expect(mocks.userFindUnique).toHaveBeenCalled();
     });
+
   });
 });
 });
