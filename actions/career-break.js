@@ -13,6 +13,7 @@ import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { parseAiOutput } from "@/lib/ai-output";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
+import { createOutputRules } from "@/lib/output-rules";
 
 /** Generate a career break plan based on user preferences. */
 export async function planCareerBreak(duration, reason, returnGoals) {
@@ -41,7 +42,7 @@ export async function planCareerBreak(duration, reason, returnGoals) {
       { label: "returnGoals", value: returnGoals, maxLength: 1000 },
     ],
 
-    outputRules: `Provide the output in the following JSON format ONLY:
+    outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
 
 {
   "handoffPlan": ["Action 1 for leaving gracefully", "Action 2"],
@@ -49,7 +50,7 @@ export async function planCareerBreak(duration, reason, returnGoals) {
   "resumeExplanation": "A strong, unapologetic 1-2 sentence explanation to put on their resume.",
   "linkedinHeadline": "A suggested LinkedIn headline or summary addition.",
   "interviewScript": "How to answer 'Can you explain the gap in your resume?' in a future interview."
-}`,
+}`),
   })
 );
 
