@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildUserProfileContext } from "@/lib/ai-context";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function generatePromotionStrategy(achievements, targetRole) {
   const { userId } = await auth();
@@ -20,6 +21,16 @@ export async function generatePromotionStrategy(achievements, targetRole) {
     where: { clerkUserId: userId },
   });
   if (!user) return createErrorResponse("User not found");
+
+  const limit = await checkRateLimit(userId, "promotion");
+  if (!limit.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [`Promotion strategy generation limit reached. Resets in ${formatResetTime(limit.resetAt)}.`],
+      },
+    };
+  }
 
   const prompt = buildSecurePrompt({
     context: buildUserProfileContext(user) + "\nYou are an expert executive coach specializing in internal promotions and salary negotiation.",
