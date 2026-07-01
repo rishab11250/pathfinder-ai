@@ -11,6 +11,7 @@ import { getAuthenticatedUserId } from "@/lib/auth-userid";
 import { createPromptConfig } from "@/lib/prompt-config";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { buildUserFilter } from "@/lib/user-filter";
 import { parseAiOutput } from "@/lib/ai-output";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 
