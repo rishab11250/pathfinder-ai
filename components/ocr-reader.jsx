@@ -12,7 +12,9 @@ import { cn } from "@/lib/utils";
 export default function OCRReader() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [stream, setStream] = useState(null);
+  const streamRef = useRef(null);
+  const workerRef = useRef(null);
+  const workerLangRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [extractedText, setExtractedText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -27,6 +29,9 @@ export default function OCRReader() {
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
     };
   }, []);
 
@@ -35,7 +40,7 @@ export default function OCRReader() {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }
       });
-      setStream(mediaStream);
+      streamRef.current = mediaStream;
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
@@ -46,8 +51,8 @@ export default function OCRReader() {
   };
 
   const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
     }
   };
 
@@ -88,8 +93,17 @@ export default function OCRReader() {
       // but let's keep it simple and just show the captured image.
       stopCamera();
 
-      // Create a worker for the selected language
-      const worker = await createWorker(language);
+      // Reuse or create a worker for the selected language
+      let worker = workerRef.current;
+      if (!worker) {
+        worker = await createWorker(language);
+        workerRef.current = worker;
+        workerLangRef.current = language;
+      } else if (workerLangRef.current !== language) {
+        await worker.reinitialize(language);
+        workerLangRef.current = language;
+      }
+      
       const ret = await worker.recognize(imageUrl);
       
       const text = ret.data.text.trim();
@@ -98,8 +112,6 @@ export default function OCRReader() {
       if (!text) {
         toast.error("No text detected. Try again with a clearer image.");
       }
-      
-      await worker.terminate();
     } catch (error) {
       console.error("OCR Error:", error);
       toast.error("Failed to extract text. Please try again.");
@@ -206,6 +218,7 @@ export default function OCRReader() {
               {!capturedImage ? (
                 <Button 
                   size="lg" 
+                  aria-label="Capture image"
                   onClick={captureImage}
                   className="rounded-full w-16 h-16 shadow-2xl bg-white hover:bg-white/90 border-4 border-primary/20 flex items-center justify-center p-0"
                 >
