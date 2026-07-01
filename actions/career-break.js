@@ -3,6 +3,7 @@ import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { getUserHistory } from "@/lib/history-query";
 import { db } from "@/lib/prisma";
+import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
 import { auth } from "@clerk/nextjs/server";
 import { createErrorResponse } from "@/lib/action-errors";
@@ -26,7 +27,7 @@ export async function planCareerBreak(duration, reason, returnGoals) {
     return { success: false, errors: { _form: ["Duration, reason, and return goals are required."] } };
   }
 
-  const prompt = buildSecurePrompt(
+  const prompt = createPrompt(
   createPromptConfig({
     context:
       "You are a Career Strategist who helps professionals take sabbaticals, parental leave, or health breaks without derailing their career.",
