@@ -20,6 +20,7 @@ const ClerkUserButton = dynamic(
 import {
   LayoutDashboard,
   Bot,
+  Volume2,
   FileText,
   Mail,
   Mic,
@@ -155,6 +156,12 @@ const MENU_GROUPS = [
       { href: "/manager-readme", label: "Manager README Builder", icon: <BookOpen className="h-4 w-4 text-cyan-500" />, shortcut: "" },
       { href: "/founder-readiness", label: "Startup Founder Readiness", icon: <RocketIcon className="h-4 w-4 text-orange-500" />, shortcut: "" },
       { href: "/executive-presence", label: "Executive Presence Coach", icon: <Crown className="h-4 w-4 text-purple-500" />, shortcut: "" },
+    ]
+  },
+  {
+    title: "Accessibility",
+    items: [
+      { href: "/ocr-reader", label: "OCR Reader", icon: <Volume2 className="h-4 w-4 text-primary" />, shortcut: "" },
     ]
   },
   {
