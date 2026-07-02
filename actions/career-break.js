@@ -3,6 +3,7 @@ import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { getUserHistory } from "@/lib/history-query";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
 import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
 import { auth } from "@clerk/nextjs/server";
@@ -58,7 +59,8 @@ export async function planCareerBreak(duration, reason, returnGoals) {
 
   try {
     const aiResult = await runAiGeneration(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAiResponse(aiResult);
+    
 
     const record = await createRecord(db.careerBreakPlan, {
   userId: user.id,

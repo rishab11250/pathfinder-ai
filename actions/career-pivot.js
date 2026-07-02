@@ -3,6 +3,7 @@ import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { getUserHistory } from "@/lib/history-query";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
 import { auth } from "@clerk/nextjs/server";
 import { createPromptConfig } from "@/lib/prompt-config";
 import { revalidatePath } from "next/cache";
@@ -57,7 +58,7 @@ export async function generatePivotStrategy(currentRole, targetRole) {
 
   try {
     const aiResult = await runAiGeneration(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAiResponse(aiResult);
 
     const record = await createRecord(db.careerPivot, {
   userId: user.id,
