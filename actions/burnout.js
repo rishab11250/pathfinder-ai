@@ -2,6 +2,7 @@
 import { handleServerError } from "@/lib/error-handler";
 import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
+import { finalizeAiPersistence } from "@/lib/ai-persistence";
 import { logActionError } from "@/lib/action-logger";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -59,7 +60,7 @@ export async function assessBurnout(symptoms, workload) {
       },
     });
 
-    revalidatePath("/burnout-coach");
+    finalizeAiPersistence("/burnout-coach");
     return { success: true, data: record };
   } catch (error) {
     return handleServerError(error, "burnout");
