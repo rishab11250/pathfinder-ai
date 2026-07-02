@@ -2,6 +2,7 @@
 import { handleServerError } from "@/lib/error-handler";
 
 import { db } from "@/lib/prisma";
+import { finalizeAiPersistence } from "@/lib/ai-persistence";
 import { buildUserLookup } from "@/lib/user-query";
 import { getAuthenticatedHistoryResponse } from "@/lib/history-response-auth";
 import { createSuccessResponse } from "@/lib/action-success";
@@ -58,7 +59,7 @@ export async function gradeAssignment(promptText, solutionText) {
       },
     });
 
-    revalidatePath("/assignment-grader");
+    finalizeAiPersistence("/assignment-grader");
     return { success: true, data: record };
   } catch (error) {
     return handleServerError(error, "assignment");
