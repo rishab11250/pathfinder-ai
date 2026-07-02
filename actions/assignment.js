@@ -1,6 +1,6 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
-
+import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
 import { buildUserLookup } from "@/lib/user-query";
 import { getAuthenticatedHistoryResponse } from "@/lib/history-response-auth";
@@ -47,7 +47,7 @@ export async function gradeAssignment(promptText, solutionText) {
 
   try {
     const aiResult = await generateGeminiContent(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAIJson(getAiResponseText(aiResult));
 
     const record = await db.assignmentGrade.create({
       data: {
