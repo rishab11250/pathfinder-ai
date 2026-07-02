@@ -1,6 +1,7 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
@@ -86,5 +87,9 @@ export async function getCareerPivots() {
   { createdAt: "desc" }
 );
 
+  return loadHistory(async () => {
+  const records = await db.careerBreakPlan.findMany(...);
+
   return { success: true, data: records };
+});
 }
