@@ -50,13 +50,13 @@ export async function gradeAssignment(promptText, solutionText) {
     const parsedData = parseAIJson(aiResult.response.text());
 
     const record = await db.assignmentGrade.create({
-      data: {
-        userId: user.id,
-        prompt: promptText,
-        solution: solutionText,
-        gradeData: parsedData,
-      },
-    });
+  data: {
+    userId: user.id,
+    prompt: promptText,
+    solution: solutionText,
+    ...mapParsedOutput("gradeData", parsedData),
+  },
+});
 
     revalidatePath("/assignment-grader");
     return { success: true, data: record };
