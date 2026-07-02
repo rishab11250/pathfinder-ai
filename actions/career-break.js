@@ -17,7 +17,7 @@ import { buildUserFilter } from "@/lib/user-filter";
 import { parseAiOutput } from "@/lib/ai-output";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { createOutputRules } from "@/lib/output-rules";
-
+import { buildParsedResult } from "@/lib/parsed-ai";
 /** Generate a career break plan based on user preferences. */
 export async function planCareerBreak(duration, reason, returnGoals) {
   const userId = await getAuthenticatedUserId(auth);
