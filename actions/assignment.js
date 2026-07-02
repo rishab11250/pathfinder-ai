@@ -51,13 +51,13 @@ export async function gradeAssignment(promptText, solutionText) {
     const parsedData = parseAIJson(getAiResponseText(aiResult));
 
     const record = await db.assignmentGrade.create({
-      data: {
-        userId: user.id,
-        prompt: promptText,
-        solution: solutionText,
-        gradeData: parsedData,
-      },
-    });
+  data: {
+    userId: user.id,
+    prompt: promptText,
+    solution: solutionText,
+    ...mapParsedOutput("gradeData", parsedData),
+  },
+});
 
     finalizeAiPersistence("/assignment-grader");
     return { success: true, data: record };
