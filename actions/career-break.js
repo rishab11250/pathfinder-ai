@@ -16,6 +16,7 @@ import { buildUserFilter } from "@/lib/user-filter";
 import { parseAiOutput } from "@/lib/ai-output";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { createOutputRules } from "@/lib/output-rules";
+import { createHistoryResponse } from "@/lib/history-response";
 
 /** Generate a career break plan based on user preferences. */
 export async function planCareerBreak(duration, reason, returnGoals) {
@@ -69,7 +70,7 @@ export async function planCareerBreak(duration, reason, returnGoals) {
 });
 
     revalidatePath("/career-break");
-    return { success: true, data: record };
+    return createHistoryResponse(records);
   } catch (error) {
     return handleServerError(error, "career-break");
   }
@@ -89,5 +90,5 @@ export async function getCareerBreakPlans() {
   { createdAt: "desc" }
 );
 
-  return { success: true, data: records };
+  return createHistoryResponse(records);
 }
