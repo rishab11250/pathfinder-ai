@@ -15,6 +15,7 @@ import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { parseAiOutput } from "@/lib/ai-output";
+import { getAuthenticatedUser } from "@/lib/authenticated-history";
 
 /** Generate a career pivot strategy based on user goals. */
 export async function generatePivotStrategy(currentRole, targetRole) {
@@ -75,21 +76,14 @@ export async function generatePivotStrategy(currentRole, targetRole) {
 }
 
 export async function getCareerPivots() {
-  const userId = await getAuthenticatedUserId(auth);
-  if (!userId) return { success: false, data: [] };
-
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await getAuthenticatedUser();
   if (!user) return { success: false, data: [] };
 
   const records = await getUserHistory(
-  db.careerPivot,
-  user.id,
-  { createdAt: "desc" }
-);
-
-  return loadHistory(async () => {
-  const records = await db.careerBreakPlan.findMany(...);
+    db.careerPivot,
+    user.id,
+    { createdAt: "desc" }
+  );
 
   return { success: true, data: records };
-});
 }
