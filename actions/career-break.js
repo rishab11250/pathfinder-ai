@@ -2,6 +2,7 @@
 import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { getUserHistory } from "@/lib/history-query";
+import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
 import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
@@ -18,6 +19,7 @@ import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { createOutputRules } from "@/lib/output-rules";
 import { createHistoryResponse } from "@/lib/history-response";
 
+import { buildParsedResult } from "@/lib/parsed-ai";
 /** Generate a career break plan based on user preferences. */
 export async function planCareerBreak(duration, reason, returnGoals) {
   const userId = await getAuthenticatedUserId(auth);

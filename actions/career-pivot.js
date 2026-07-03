@@ -90,4 +90,9 @@ export async function getCareerPivots() {
 );
 
   return createHistoryResponse(records);
+  return loadHistory(async () => {
+  const records = await db.careerBreakPlan.findMany(...);
+
+  return { success: true, data: records };
+});
 }
