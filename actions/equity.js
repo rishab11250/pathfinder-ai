@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { buildHistoryResponse } from "@/lib/history-loader";
 
 export async function decodeEquityOffer(offerDetails) {
   const { userId } = await auth();
@@ -77,5 +78,5 @@ export async function getEquityAnalyses() {
     orderBy: { createdAt: "desc" },
   });
 
-  return { success: true, data: records };
+  return buildHistoryResponse(records);
 }
