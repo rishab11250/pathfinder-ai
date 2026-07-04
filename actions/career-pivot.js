@@ -4,7 +4,9 @@ import { runAiGeneration } from "@/lib/ai-pipeline";
 import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
 import { db } from "@/lib/prisma";
+import { buildParsedResult } from "@/lib/parsed-ai";
 import { auth } from "@clerk/nextjs/server";
+import { createHistoryResponse } from "@/lib/history-response";
 import { createPromptConfig } from "@/lib/prompt-config";
 import { revalidatePath } from "next/cache";
 import { createOutputRules } from "@/lib/output-rules";
@@ -87,6 +89,7 @@ export async function getCareerPivots() {
   { createdAt: "desc" }
 );
 
+  return createHistoryResponse(records);
   return loadHistory(async () => {
   const records = await db.careerBreakPlan.findMany(...);
 
