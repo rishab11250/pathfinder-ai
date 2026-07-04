@@ -6,6 +6,7 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
+import { invokeAiGeneration } from "@/lib/ai-generator";
 import { generateGeminiContent } from "@/lib/gemini";
 
 export async function decodeEquityOffer(offerDetails) {
@@ -47,7 +48,7 @@ export async function decodeEquityOffer(offerDetails) {
   });
 
   try {
-    const aiResult = await generateGeminiContent(prompt);
+    const aiResult = await invokeAiGeneration(prompt);
     const parsedData = parseAIJson(aiResult.response.text());
 
     const record = await db.equityAnalysis.create({
