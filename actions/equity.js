@@ -1,4 +1,5 @@
 "use server";
+import { requireHistoryUser } from "@/lib/history-guard";
 import { handleServerError } from "@/lib/error-handler";
 import { createErrorResponse } from "@/lib/action-errors";
 
@@ -69,8 +70,11 @@ export async function getEquityAnalyses() {
   const { userId } = await auth();
   if (!userId) return { success: false, data: [] };
 
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
-  if (!user) return { success: false, data: [] };
+  const user = await requireHistoryUser();
+
+if ("success" in user) {
+  return user;
+}
 
   const records = await db.equityAnalysis.findMany({
     where: { userId: user.id },

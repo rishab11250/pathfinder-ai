@@ -1,4 +1,5 @@
 "use server";
+import { requireHistoryUser } from "@/lib/history-guard";
 import { handleServerError } from "@/lib/error-handler";
 import { createErrorResponse } from "@/lib/action-errors";
 
