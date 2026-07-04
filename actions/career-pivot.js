@@ -1,4 +1,5 @@
 "use server";
+import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { handleServerError } from "@/lib/error-handler";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
@@ -28,19 +29,23 @@ export async function generatePivotStrategy(currentRole, targetRole) {
   if (!user) return createErrorResponse("User not found");
 
   if (!currentRole || !targetRole) {
-    return { success: false, errors: { _form: ["Both current and target roles are required."] } };
+    return {
+      success: false,
+      errors: { _form: ["Both current and target roles are required."] },
+    };
   }
 
-  const prompt = buildSecurePrompt(
-  createPromptConfig({
-    context: "You are an expert career transition coach.",
-    task: `Analyze a career pivot from '${currentRole}' to '${targetRole}'. 
-    Identify the hidden transferable skills the candidate already has, the major skill gaps they need to close, and a step-by-step roadmap to make the transition.`,
-    untrustedData: [
-      { label: "currentRole", value: currentRole, maxLength: 100 },
-      { label: "targetRole", value: targetRole, maxLength: 100 },
-    ],
-    outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
+  try {
+    const aiResult = await executeSecurePrompt(
+      createPromptConfig({
+        context: "You are an expert career transition coach.",
+        task: `Analyze a career pivot from '${currentRole}' to '${targetRole}'.
+        Identify the hidden transferable skills the candidate already has, the major skill gaps they need to close, and a step-by-step roadmap to make the transition.`,
+        untrustedData: [
+          { label: "currentRole", value: currentRole, maxLength: 100 },
+          { label: "targetRole", value: targetRole, maxLength: 100 },
+        ],
+        outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
 {
   "transferableSkills": [
     "Skill 1 (and how it translates)",
@@ -56,19 +61,17 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     { "step": "Phase 3: Networking & Application", "action": "How to position yourself" }
   ]
 }`),
-  })
-);
+      })
+    );
 
-  try {
-    const aiResult = await runAiGeneration(prompt);
     const parsedData = parseAIJson(aiResult.response.text());
 
     const record = await createRecord(db.careerPivot, {
-  userId: user.id,
-  currentRole,
-  targetRole,
-  result: parsedData,
-});
+      userId: user.id,
+      currentRole,
+      targetRole,
+      result: parsedData,
+    });
 
     revalidatePath("/career-pivot");
     return { success: true, data: record };
