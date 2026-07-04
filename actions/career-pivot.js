@@ -1,5 +1,6 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
+import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
