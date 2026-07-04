@@ -1,7 +1,7 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
 import { createErrorResponse } from "@/lib/action-errors";
-
+import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -46,7 +46,7 @@ export async function generateCheatSheet(company, role) {
 
   try {
     const aiResult = await generateGeminiContent(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAIJson(getAiResponseText(aiResult));
 
     const record = await db.interviewCheatSheet.create({
       data: {
