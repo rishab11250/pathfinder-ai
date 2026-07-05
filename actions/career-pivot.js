@@ -5,6 +5,7 @@ import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
+import { createSuccessResponse } from "@/lib/action-success";
 import { db } from "@/lib/prisma";
 import { buildParsedResult } from "@/lib/parsed-ai";
 import { auth } from "@clerk/nextjs/server";
@@ -74,7 +75,7 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     });
 
     revalidatePath("/career-pivot");
-    return { success: true, data: record };
+    return createSuccessResponse(record);
   } catch (error) {
     return handleServerError(error, "career-pivot");
   }
