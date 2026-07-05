@@ -3,6 +3,7 @@ import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
+import { withParsedData } from "@/lib/persistence-data";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
@@ -70,7 +71,7 @@ export async function planCareerBreak(duration, reason, returnGoals) {
   duration,
   reason,
   returnGoals,
-  result: parsedData,
+  ...withParsedData("result", parsedData),
 });
 
     revalidatePath("/career-break");

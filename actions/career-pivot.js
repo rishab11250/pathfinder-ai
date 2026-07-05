@@ -1,5 +1,6 @@
 "use server";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
+import { withParsedData } from "@/lib/persistence-data";
 import { handleServerError } from "@/lib/error-handler";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
@@ -67,11 +68,11 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     const parsedData = parseAIJson(aiResult.response.text());
 
     const record = await createRecord(db.careerPivot, {
-      userId: user.id,
-      currentRole,
-      targetRole,
-      result: parsedData,
-    });
+  userId: user.id,
+  currentRole,
+  targetRole,
+  ...withParsedData("result", parsedData),
+});
 
     revalidatePath("/career-pivot");
     return { success: true, data: record };
