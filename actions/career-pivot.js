@@ -1,5 +1,6 @@
 "use server";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
+import { returnRecord } from "@/lib/record-response";
 import { handleServerError } from "@/lib/error-handler";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
