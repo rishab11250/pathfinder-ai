@@ -8,6 +8,7 @@ import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
 import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
+import { completePersistence } from "@/lib/persistence-complete";
 import { auth } from "@clerk/nextjs/server";
 import { createErrorResponse } from "@/lib/action-errors";
 import { revalidatePath } from "next/cache";
@@ -73,8 +74,10 @@ export async function planCareerBreak(duration, reason, returnGoals) {
   result: parsedData,
 });
 
-    revalidatePath("/career-break");
-    return createHistoryResponse(records);
+    return completePersistence(
+      record,
+      "/career-break"
+    );
   } catch (error) {
     return handleServerError(error, "career-break");
   }
