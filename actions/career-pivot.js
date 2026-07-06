@@ -1,6 +1,7 @@
 "use server";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { handleServerError } from "@/lib/error-handler";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { loadHistory } from "@/lib/history-loader";
@@ -45,7 +46,8 @@ export async function generatePivotStrategy(currentRole, targetRole) {
           { label: "currentRole", value: currentRole, maxLength: 100 },
           { label: "targetRole", value: targetRole, maxLength: 100 },
         ],
-        outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
+        outputRules: createOutputRules(
+  createJsonOutputRules(`{
 {
   "transferableSkills": [
     "Skill 1 (and how it translates)",
@@ -60,7 +62,7 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     { "step": "Phase 2: Portfolio", "action": "What to build or prove" },
     { "step": "Phase 3: Networking & Application", "action": "How to position yourself" }
   ]
-}`),
+}`)),
       })
     );
 

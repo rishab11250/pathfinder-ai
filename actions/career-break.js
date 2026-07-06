@@ -1,6 +1,7 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
@@ -49,7 +50,8 @@ export async function planCareerBreak(duration, reason, returnGoals) {
       { label: "returnGoals", value: returnGoals, maxLength: 1000 },
     ],
 
-    outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
+    outputRules: createOutputRules(
+  createJsonOutputRules(`{
 
 {
   "handoffPlan": ["Action 1 for leaving gracefully", "Action 2"],
@@ -57,7 +59,7 @@ export async function planCareerBreak(duration, reason, returnGoals) {
   "resumeExplanation": "A strong, unapologetic 1-2 sentence explanation to put on their resume.",
   "linkedinHeadline": "A suggested LinkedIn headline or summary addition.",
   "interviewScript": "How to answer 'Can you explain the gap in your resume?' in a future interview."
-}`),
+}`)),
   })
 );
 
