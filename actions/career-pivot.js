@@ -1,6 +1,7 @@
 "use server";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { handleServerError } from "@/lib/error-handler";
+import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { loadHistory } from "@/lib/history-loader";

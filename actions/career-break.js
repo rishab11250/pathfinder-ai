@@ -4,6 +4,7 @@ import { runAiGeneration } from "@/lib/ai-pipeline";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
+import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
 import { createPrompt } from "@/lib/prompt-wrapper";
