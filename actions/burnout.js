@@ -11,6 +11,7 @@ import { buildUserLookup } from "@/lib/user-query";
 import { buildHistoryResponse } from "@/lib/history-loader";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 import { USER_NOT_FOUND_RESPONSE } from "@/lib/user-not-found";
 import { CREATED_AT_DESC } from "@/lib/sort-config";
 
@@ -21,6 +22,16 @@ export async function assessBurnout(symptoms, workload) {
 
   const user = await db.user.findUnique(buildUserLookup(userId));
   if (!user) return USER_NOT_FOUND_RESPONSE;
+
+  const limit = await checkRateLimit(userId, "burnout");
+  if (!limit.allowed) {
+    return {
+      success: false,
+      errors: {
+        _form: [`Burnout assessment limit reached. Resets in ${formatResetTime(limit.resetAt)}.`],
+      },
+    };
+  }
 
   if (!symptoms || !workload) {
     return { success: false, errors: { _form: ["Both symptoms and workload details are required."] } };
