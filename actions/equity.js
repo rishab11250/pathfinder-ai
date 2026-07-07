@@ -9,6 +9,7 @@ import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
+import { invokeAiGeneration } from "@/lib/ai-generator";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildHistoryResponse } from "@/lib/history-loader";
 

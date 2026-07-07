@@ -7,6 +7,7 @@ import { createErrorResponse } from "@/lib/action-errors";
 import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { invokeAiGeneration } from "@/lib/ai-generator";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { buildHistoryResponse } from "@/lib/history-loader";
