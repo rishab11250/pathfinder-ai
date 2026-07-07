@@ -2,6 +2,7 @@
 import { getAuthenticatedUser } from "@/lib/authenticated-history";
 import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { createValidationResponse } from "@/lib/validation-response";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
 import { createJsonOutputRules } from "@/lib/output-rules";
@@ -34,8 +35,10 @@ export async function planCareerBreak(duration, reason, returnGoals) {
   if (!user) return createErrorResponse("User not found");
 
   if (!duration || !reason || !returnGoals) {
-    return { success: false, errors: { _form: ["Duration, reason, and return goals are required."] } };
-  }
+  return createValidationResponse(
+    "Duration, reason, and return goals are required."
+  );
+}
 
   const prompt = createPrompt(
   createPromptConfig({

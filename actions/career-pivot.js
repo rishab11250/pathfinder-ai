@@ -3,6 +3,7 @@ import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { handleServerError } from "@/lib/error-handler";
 import { PROMPT_CONTEXTS } from "@/lib/prompt-contexts";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
+import { createValidationResponse } from "@/lib/validation-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { createJsonOutputRules } from "@/lib/output-rules";
 import { loadHistory } from "@/lib/history-loader";
@@ -33,10 +34,9 @@ export async function generatePivotStrategy(currentRole, targetRole) {
   if (!user) return createErrorResponse("User not found");
 
   if (!currentRole || !targetRole) {
-    return {
-      success: false,
-      errors: { _form: ["Both current and target roles are required."] },
-    };
+    return createValidationResponse(
+    "Both current and target roles are required."
+  );
   }
 
   try {
