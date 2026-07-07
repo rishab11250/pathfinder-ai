@@ -3,6 +3,7 @@ import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { handleServerError } from "@/lib/error-handler";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
 import { db } from "@/lib/prisma";
@@ -46,7 +47,7 @@ export async function generatePivotStrategy(currentRole, targetRole) {
           { label: "currentRole", value: currentRole, maxLength: 100 },
           { label: "targetRole", value: targetRole, maxLength: 100 },
         ],
-        outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
+        outputRules: createJsonOutputRules(`Provide the output in the following JSON format ONLY:
 {
   "transferableSkills": [
     "Skill 1 (and how it translates)",

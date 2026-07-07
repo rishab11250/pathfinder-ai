@@ -4,6 +4,7 @@ import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
