@@ -1,12 +1,15 @@
 "use server";
+import { requireHistoryUser } from "@/lib/history-guard";
 import { handleServerError } from "@/lib/error-handler";
 import { parseAiResponse } from "@/lib/ai-parser";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 import { createErrorResponse } from "@/lib/action-errors";
-
+import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
+import { buildHistoryResponse } from "@/lib/history-loader";
 import { generateGeminiContent } from "@/lib/gemini";
 
 export async function generateCheatSheet(company, role) {
@@ -47,7 +50,7 @@ export async function generateCheatSheet(company, role) {
 
   try {
     const aiResult = await generateGeminiContent(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAIJson(getAiResponseText(aiResult));
 
     const record = await db.interviewCheatSheet.create({
       data: {
@@ -67,15 +70,15 @@ export async function generateCheatSheet(company, role) {
 
 export async function getCheatSheets() {
   const { userId } = await auth();
-  if (!userId) return { success: false, data: [] };
+  if (!userId) return EMPTY_HISTORY_RESPONSE;
 
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
-  if (!user) return { success: false, data: [] };
+  if (!user) return EMPTY_HISTORY_RESPONSE;
 
   const records = await db.interviewCheatSheet.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
 
-  return { success: true, data: records };
+  return buildHistoryResponse(records);
 }
