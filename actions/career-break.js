@@ -1,4 +1,5 @@
 "use server";
+import { getAuthenticatedUser } from "@/lib/authenticated-history";
 import { handleServerError } from "@/lib/error-handler";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
@@ -82,17 +83,17 @@ export async function planCareerBreak(duration, reason, returnGoals) {
 /** Retrieve all career break plans for the current user. */
 
 export async function getCareerBreakPlans() {
-  const userId = await getAuthenticatedUserId(auth);
-  if (!userId) return { success: false, data: [] };
-
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await getAuthenticatedUser();
   if (!user) return { success: false, data: [] };
 
   const records = await getUserHistory(
-  db.careerBreakPlan,
-  user.id,
-  { createdAt: "desc" }
-);
+    db.careerBreakPlan,
+    user.id,
+    { createdAt: "desc" }
+  );
 
   return createHistoryResponse(records);
 }
+
+  return { success: true, data: records };
+
