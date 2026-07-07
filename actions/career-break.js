@@ -1,6 +1,7 @@
 "use server";
 import { getAuthenticatedUser } from "@/lib/authenticated-history";
 import { handleServerError } from "@/lib/error-handler";
+import { returnRecord } from "@/lib/record-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { createValidationResponse } from "@/lib/validation-response";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
