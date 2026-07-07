@@ -1,6 +1,7 @@
 "use server";
 import { requireHistoryUser } from "@/lib/history-guard";
 import { handleServerError } from "@/lib/error-handler";
+import { parseAiResponse } from "@/lib/ai-parser";
 import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 import { createErrorResponse } from "@/lib/action-errors";
 import { getAiResponseText } from "@/lib/ai-response";
