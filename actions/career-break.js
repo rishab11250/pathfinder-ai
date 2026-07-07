@@ -8,6 +8,7 @@ import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
 import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
+import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { createSuccessResponse } from "@/lib/action-success";
 import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";

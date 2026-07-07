@@ -2,6 +2,7 @@
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { returnRecord } from "@/lib/record-response";
 import { handleServerError } from "@/lib/error-handler";
+import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { PROMPT_CONTEXTS } from "@/lib/prompt-contexts";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { createValidationResponse } from "@/lib/validation-response";
