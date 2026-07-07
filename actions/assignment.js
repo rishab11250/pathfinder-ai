@@ -1,5 +1,7 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
+import { mapParsedOutput } from "@/lib/field-mapping";
+import { ACTION_CONTEXT } from "@/lib/action-context";
 import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
 import { finalizeAiPersistence } from "@/lib/ai-persistence";
@@ -62,7 +64,7 @@ export async function gradeAssignment(promptText, solutionText) {
     finalizeAiPersistence("/assignment-grader");
     return { success: true, data: record };
   } catch (error) {
-    return handleServerError(error, "assignment");
+    return handleServerError(error, ACTION_CONTEXT.ASSIGNMENT);
   }
 /** Retrieve all graded assignments for the current user. */
 }
