@@ -10,6 +10,7 @@ import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { getEnv } from "@/lib/env";
 import { auth } from "@clerk/nextjs/server";
 import { getUserSettings } from "@/actions/settings";
+import AIMentorChat from "@/components/chat/ai-mentor-chat";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -62,6 +63,7 @@ export default async function RootLayout(props) {
             <ScrollProgress />
             <CursorGlow />
             <main className="min-h-screen">{children}</main>
+            <AIMentorChat />
             <Toaster richColors />
           </Providers>
         </ClerkProvider>
