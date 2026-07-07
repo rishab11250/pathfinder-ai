@@ -1,6 +1,7 @@
 "use server";
 import { requireHistoryUser } from "@/lib/history-guard";
 import { handleServerError } from "@/lib/error-handler";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 import { createErrorResponse } from "@/lib/action-errors";
 import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
@@ -71,12 +72,10 @@ export async function generateCheatSheet(company, role) {
 
 export async function getCheatSheets() {
   const { userId } = await auth();
-  if (!userId) return { success: false, data: [] };
+  if (!userId) return EMPTY_HISTORY_RESPONSE;
 
-  const user = await db.user.findUnique(
-  buildUserLookup(userId)
-);
-  if (!user) return { success: false, data: [] };
+  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  if (!user) return EMPTY_HISTORY_RESPONSE;
 
   const records = await db.interviewCheatSheet.findMany({
     where: { userId: user.id },
