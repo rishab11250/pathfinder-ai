@@ -18,6 +18,7 @@ import { createPromptConfig } from "@/lib/prompt-config";
 import { revalidatePath } from "next/cache";
 import { createOutputRules } from "@/lib/output-rules";
 import { createErrorResponse } from "@/lib/action-errors";
+import { completePersistence } from "@/lib/persistence-complete";
 import { createRecord } from "@/lib/record-create";
 import { getAuthenticatedUserId } from "@/lib/auth-userid";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";

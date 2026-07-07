@@ -13,6 +13,7 @@ import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
 import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
+import { completePersistence } from "@/lib/persistence-complete";
 import { auth } from "@clerk/nextjs/server";
 import { createErrorResponse } from "@/lib/action-errors";
 import { revalidatePath } from "next/cache";
