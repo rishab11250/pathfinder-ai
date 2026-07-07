@@ -57,7 +57,7 @@ export default function AIMentorChat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
+          messages: [...messages.slice(-10), userMessage],
           currentPage: pathname,
           userRole: isLoaded && user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : "User",
         }),
@@ -84,7 +84,7 @@ export default function AIMentorChat() {
 
         setMessages((prev) => {
           const newMsgs = [...prev];
-          newMsgs[newMsgs.length - 1].content = assistantMessage;
+          newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: assistantMessage };
           return newMsgs;
         });
       }
@@ -129,6 +129,7 @@ export default function AIMentorChat() {
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 hover:bg-muted rounded-full transition-colors"
+                  aria-label="Close chat"
                 >
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
                 </button>
@@ -150,7 +151,7 @@ export default function AIMentorChat() {
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       key={idx}
-                      className={\`flex gap-3 \${msg.role === "user" ? "justify-end" : "justify-start"}\`}
+                      className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       {msg.role === "assistant" && (
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -159,11 +160,11 @@ export default function AIMentorChat() {
                       )}
                       
                       <div
-                        className={\`px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed \${
+                        className={`px-4 py-2.5 rounded-2xl max-w-[80%] text-sm leading-relaxed ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground rounded-br-none"
                             : "bg-muted/50 border border-border/50 rounded-bl-none text-foreground"
-                        }\`}
+                        }`}
                       >
                         {msg.role === "assistant" ? (
                           <div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-pre:my-2 prose-ul:my-1 max-w-none break-words">
@@ -236,6 +237,7 @@ export default function AIMentorChat() {
                     type="submit"
                     disabled={!input.trim() || isLoading}
                     className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 hover:bg-primary/90 transition-colors shrink-0"
+                    aria-label="Send message"
                   >
                     {isLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -253,11 +255,12 @@ export default function AIMentorChat() {
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className={\`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors border \${
+          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors border ${
             isOpen 
               ? "bg-muted hover:bg-muted/80 text-foreground border-border" 
               : "bg-primary hover:bg-primary/90 text-primary-foreground border-primary/20 shadow-primary/25"
-          }\`}
+          }`}
+          aria-label={isOpen ? "Close chat" : "Open chat"}
         >
           {isOpen ? (
             <X className="w-6 h-6" />

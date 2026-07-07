@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { generateGeminiContentStream } from "@/lib/gemini";
 import { db } from "@/lib/prisma";
 
+const rateLimitMap = new Map();
+
 export async function POST(req) {
   try {
     const authResult = await auth();
@@ -10,11 +12,35 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
+    const now = Date.now();
+    const rateData = rateLimitMap.get(userId) || { count: 0, resetTime: now + 60000 };
+    if (now > rateData.resetTime) {
+      rateData.count = 1;
+      rateData.resetTime = now + 60000;
+    } else {
+      rateData.count++;
+      if (rateData.count > 10) {
+        return new Response(JSON.stringify({ error: "Too many requests" }), { status: 429 });
+      }
+    }
+    rateLimitMap.set(userId, rateData);
+
     const body = await req.json();
-    const { messages, currentPage, userRole } = body;
+    let { messages, currentPage, userRole } = body;
+
+    currentPage = String(currentPage || 'Unknown').slice(0, 100).replace(/[^a-zA-Z0-9_/\-]/g, '');
+    userRole = String(userRole || 'User').slice(0, 50).replace(/[^a-zA-Z0-9 _\-]/g, '');
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "Messages array is required" }), { status: 400 });
+    }
+
+    const isValidMessages = messages.every(msg => 
+      msg && typeof msg.content === 'string' && (msg.role === 'user' || msg.role === 'assistant')
+    );
+
+    if (!isValidMessages) {
+      return new Response(JSON.stringify({ error: "Invalid message format" }), { status: 400 });
     }
 
     // Convert messages to Gemini format if they are not already
@@ -45,7 +71,7 @@ Guidelines:
     };
 
     const encoder = new TextEncoder();
-    const result = await generateGeminiContentStream(fullPrompt);
+    const result = await generateGeminiContentStream(fullPrompt, { signal: req.signal });
 
     const stream = new ReadableStream({
       async start(controller) {

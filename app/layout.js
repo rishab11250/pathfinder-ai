@@ -63,7 +63,7 @@ export default async function RootLayout(props) {
             <ScrollProgress />
             <CursorGlow />
             <main className="min-h-screen">{children}</main>
-            <AIMentorChat />
+            {userId && <AIMentorChat />}
             <Toaster richColors />
           </Providers>
         </ClerkProvider>
