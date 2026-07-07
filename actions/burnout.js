@@ -1,7 +1,7 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
 import { getAiResponseText } from "@/lib/ai-response";
-import { initializeAuthenticatedAction } from "@/lib/action-init";
+import { ACTION_CONTEXT } from "@/lib/action-context";
 import { db } from "@/lib/prisma";
 import { finalizeAiPersistence } from "@/lib/ai-persistence";
 import { logActionError } from "@/lib/action-logger";
@@ -75,7 +75,7 @@ export async function assessBurnout(symptoms, workload) {
     finalizeAiPersistence("/burnout-coach");
     return { success: true, data: record };
   } catch (error) {
-    return handleServerError(error, "burnout");
+    return handleServerError(error, ACTION_CONTEXT.BURNOUT);
   }
 }
 /** Retrieve all burnout assessments for the current user. */
