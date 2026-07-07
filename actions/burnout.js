@@ -1,6 +1,7 @@
 "use server";
 import { handleServerError } from "@/lib/error-handler";
 import { getAiResponseText } from "@/lib/ai-response";
+import { initializeAuthenticatedAction } from "@/lib/action-init";
 import { db } from "@/lib/prisma";
 import { finalizeAiPersistence } from "@/lib/ai-persistence";
 import { logActionError } from "@/lib/action-logger";
