@@ -53,7 +53,6 @@ export function useTextToSpeech() {
     for (const locale of targetLocales) {
       voice = voices.find((v) => v.lang === locale);
       if (voice) {
-        utterance.lang = locale; // sync utterance lang to the exact match
         break;
       }
     }
@@ -73,6 +72,7 @@ export function useTextToSpeech() {
 
     if (voice) {
       utterance.voice = voice;
+      utterance.lang = voice.lang;
     }
 
     utterance.onstart = () => setIsSpeaking(true);

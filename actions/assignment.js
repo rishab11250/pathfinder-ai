@@ -1,6 +1,11 @@
 "use server";
-
+import { handleServerError } from "@/lib/error-handler";
+import { mapParsedOutput } from "@/lib/field-mapping";
+import { ACTION_CONTEXT } from "@/lib/action-context";
+import { getAiResponseText } from "@/lib/ai-response";
 import { db } from "@/lib/prisma";
+import { finalizeAiPersistence } from "@/lib/ai-persistence";
+import { requireAuthenticatedUser } from "@/lib/authenticated-user";
 import { buildUserLookup } from "@/lib/user-query";
 import { getAuthenticatedHistoryResponse } from "@/lib/history-response-auth";
 import { createSuccessResponse } from "@/lib/action-success";
@@ -18,11 +23,10 @@ import { USER_NOT_FOUND_RESPONSE } from "@/lib/user-not-found";
 
 /** Grade an assignment submission against a rubric or prompt. */
 export async function gradeAssignment(promptText, solutionText) {
-  const user = await getAuthenticatedHistoryUser();
+  const init = await initializeAuthenticatedAction();
+  if ("success" in init) return init;
 
-  const user = await getUserByScope(userId);
-  if (!user) return USER_NOT_FOUND_RESPONSE;
-  if (!user) return EMPTY_HISTORY_RESPONSE;
+  const { user } = init;
 
   if (!promptText || !solutionText) {
     return { success: false, errors: { _form: ["Both prompt and solution are required."] } };
@@ -49,22 +53,21 @@ export async function gradeAssignment(promptText, solutionText) {
 
   try {
     const aiResult = await generateGeminiContent(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAIJson(getAiResponseText(aiResult));
 
     const record = await db.assignmentGrade.create({
-      data: {
-        userId: user.id,
-        prompt: promptText,
-        solution: solutionText,
-        gradeData: parsedData,
-      },
-    });
+  data: {
+    userId: user.id,
+    prompt: promptText,
+    solution: solutionText,
+    ...mapParsedOutput("gradeData", parsedData),
+  },
+});
 
-    revalidatePath("/assignment-grader");
+    finalizeAiPersistence("/assignment-grader");
     return { success: true, data: record };
   } catch (error) {
-    console.error("Assignment Grader Error:", error);
-    return { success: false, errors: { _form: [error.message || "Failed to grade assignment"] } };
+    return handleServerError(error, ACTION_CONTEXT.ASSIGNMENT);
   }
 /** Retrieve all graded assignments for the current user. */
 }

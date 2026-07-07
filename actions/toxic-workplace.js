@@ -1,4 +1,5 @@
 "use server";
+import { handleServerError } from "@/lib/error-handler";
 import { createErrorResponse } from "@/lib/action-errors";
 
 import { db } from "@/lib/prisma";
@@ -55,9 +56,21 @@ export async function generateEscapePlan(symptoms, role) {
     revalidatePath("/toxic-workplace");
     return { success: true, data: record };
   } catch (error) {
-    console.error("Toxic Workplace Error:", error);
-    return { success: false, errors: { _form: [error.message || "Failed to generate escape plan"] } };
+  if (
+    error?.message?.includes("ToxicWorkplaceEscape") &&
+    error?.message?.includes("does not exist")
+  ) {
+    return {
+      success: false,
+      errors: {
+        _form: [
+          "This feature is temporarily unavailable because it is still being deployed. Please try again later.",
+        ],
+      },
+    };
   }
+
+  return handleServerError(error, "toxic-workplace");
 }
 
 export async function getEscapePlans() {

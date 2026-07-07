@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { evaluateVoiceAnswer } from "@/actions/interview";
+import { evaluateVoiceAnswer, getCoachQuestions } from "@/actions/interview";
+import useFetch from "@/hooks/use-fetch";
 import { Mic, Square, Play, RotateCcw, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,10 @@ import { toast } from "sonner";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 import { useTranslation } from "@/hooks/use-translation";
 
-// A mock question or we could let the user select one. 
-// For V1, we'll use a standard behavioral question.
-const QUESTION = "Tell me about a time when you had to overcome a significant technical challenge at work.";
-
 export default function VoiceCoachPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { data: questionPool, loading: loadingQuestion, error: questionError, fn: loadQuestions } = useFetch(getCoachQuestions);
+  const [question, setQuestion] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [evaluating, setEvaluating] = useState(false);
@@ -23,6 +22,16 @@ export default function VoiceCoachPage() {
   const { speak, cancel, supported: ttsSupported } = useTextToSpeech();
   
   const recognitionRef = useRef(null);
+
+  // Reload when language changes so the prompt stays in sync with speech recognition locale
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadQuestions(language); }, [language]);
+
+  useEffect(() => {
+    if (questionPool?.length) {
+      setQuestion(questionPool[Math.floor(Math.random() * questionPool.length)]);
+    }
+  }, [questionPool]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -34,6 +43,7 @@ export default function VoiceCoachPage() {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = language === "hi" ? "hi-IN" : "en-US";
 
         recognitionRef.current.onresult = (event) => {
           let currentTranscript = "";
@@ -49,10 +59,10 @@ export default function VoiceCoachPage() {
         };
       }
     }
-  }, []);
+  }, [language, t]);
 
   const toggleRecording = () => {
-    if (!speechSupported) return;
+    if (!speechSupported || loadingQuestion || !question) return;
 
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -67,14 +77,14 @@ export default function VoiceCoachPage() {
   };
 
   const handleEvaluate = async () => {
-    // Wait a brief moment for final transcript results
     setTimeout(async () => {
+      if (loadingQuestion || !question) return;
       if (!transcript.trim()) {
         toast.error(t("noSpeechDetected"));
         return;
       }
       setEvaluating(true);
-      const res = await evaluateVoiceAnswer(QUESTION, transcript);
+      const res = await evaluateVoiceAnswer(question, transcript);
       if (res.success) {
         setEvaluation(res.data);
         
@@ -93,6 +103,10 @@ export default function VoiceCoachPage() {
     setTranscript("");
     setEvaluation(null);
     cancel();
+    if (questionPool?.length) {
+      const pool = questionPool.filter((q) => q !== question);
+      setQuestion(pool[Math.floor(Math.random() * pool.length)] || questionPool[0]);
+    }
   };
 
   return (
@@ -109,9 +123,10 @@ export default function VoiceCoachPage() {
             <Mic className="h-3 w-3" />
             {t("voiceCoach")}
           </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground mb-4">
-            {t("speakWith")} <span className="text-gradient-primary">{t("confidence")}</span>
-          </h1>
+          <h1 
+            className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground mb-4"
+            dangerouslySetInnerHTML={{ __html: t("speakWithConfidence") }}
+          />
           <p className="text-muted-foreground text-sm md:text-base font-medium max-w-2xl mx-auto">
             {t("practiceSkills")}
           </p>
@@ -131,9 +146,18 @@ export default function VoiceCoachPage() {
               className="bg-card border border-border p-8 rounded-3xl shadow-lg text-center"
             >
               <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">{t("prompt")}</h3>
-              <p className="text-xl md:text-2xl font-semibold leading-relaxed text-foreground">
-                "{QUESTION}"
-              </p>
+              {loadingQuestion ? (
+                <div className="space-y-2 animate-pulse mx-auto max-w-lg">
+                  <div className="h-4 bg-muted rounded w-full" />
+                  <div className="h-4 bg-muted rounded w-4/5 mx-auto" />
+                </div>
+              ) : questionError ? (
+                <p className="text-sm text-destructive">Failed to load question. Please refresh the page.</p>
+              ) : (
+                <p className="text-xl md:text-2xl font-semibold leading-relaxed text-foreground">
+                  "{question}"
+                </p>
+              )}
             </motion.div>
 
             {!evaluation && !evaluating && (
@@ -148,9 +172,12 @@ export default function VoiceCoachPage() {
                   )}
                   <button
                     onClick={toggleRecording}
+                    disabled={loadingQuestion || !question}
                     className={`relative z-10 h-32 w-32 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
-                      isRecording 
-                        ? 'bg-red-500 text-white hover:bg-red-600 scale-110' 
+                      isRecording
+                        ? 'bg-red-500 text-white hover:bg-red-600 scale-110'
+                        : loadingQuestion || !question
+                        ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
                         : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105'
                     }`}
                   >
@@ -158,7 +185,7 @@ export default function VoiceCoachPage() {
                   </button>
                 </div>
                 <p className="mt-8 font-bold text-lg">
-                  {isRecording ? t("recordingClickToStop") : t("clickMicToStart")}
+                  {isRecording ? t("recordingClickToStop") : loadingQuestion ? "Loading question..." : t("clickMicToStart")}
                 </p>
 
                 {transcript && (

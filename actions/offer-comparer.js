@@ -1,6 +1,7 @@
 "use server";
+import { handleServerError } from "@/lib/error-handler";
 import { createErrorResponse } from "@/lib/action-errors";
-
+import { buildUserLookup } from "@/lib/user-query";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -14,10 +15,12 @@ export async function compareOffers(offers) {
   const { userId } = await auth();
   if (!userId) return { success: false, errors: { _form: ["Unauthorized"] } };
 
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await db.user.findUnique(
+  buildUserLookup(userId)
+);
   if (!user) return createErrorResponse("User not found");
 
-  const rateLimitResult = await checkRateLimit(user.id, "offerComparer");
+  const rateLimitResult = await checkRateLimit(userId, "offerComparer");
   if (!rateLimitResult.allowed) {
     return {
       success: false,
@@ -74,8 +77,7 @@ export async function compareOffers(offers) {
     revalidatePath("/offer-comparer");
     return { success: true, data: record };
   } catch (error) {
-    console.error("Offer Comparison Error:", error);
-    return { success: false, errors: { _form: [error.message || "Failed to compare offers"] } };
+    return handleServerError(error, "offer-comparer");
   }
 }
 
@@ -83,7 +85,9 @@ export async function getOfferComparisons() {
   const { userId } = await auth();
   if (!userId) return { success: false, data: [] };
 
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await db.user.findUnique(
+  buildUserLookup(userId)
+);
   if (!user) return { success: false, data: [] };
 
   const records = await db.offerComparison.findMany({
