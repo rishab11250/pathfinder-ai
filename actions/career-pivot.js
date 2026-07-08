@@ -12,6 +12,7 @@ import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
 import { createSuccessResponse } from "@/lib/action-success";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
 import { buildParsedResult } from "@/lib/parsed-ai";
 import { auth } from "@clerk/nextjs/server";
 import { createHistoryResponse } from "@/lib/history-response";
@@ -71,6 +72,9 @@ export async function generatePivotStrategy(currentRole, targetRole) {
       })
     );
 
+  try {
+    const aiResult = await runAiGeneration(prompt);
+    const parsedData = parseAiResponse(aiResult);
     const parsedData = parseAIJson(aiResult.response.text());
 
     const record = await createRecord(db.careerPivot, {

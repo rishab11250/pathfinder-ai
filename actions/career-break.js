@@ -12,6 +12,7 @@ import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { createSuccessResponse } from "@/lib/action-success";
 import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
 import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
 import { completePersistence } from "@/lib/persistence-complete";
@@ -72,7 +73,8 @@ export async function planCareerBreak(duration, reason, returnGoals) {
 
   try {
     const aiResult = await runAiGeneration(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAiResponse(aiResult);
+    
 
     const record = await createRecord(db.careerBreakPlan, {
   userId: user.id,
