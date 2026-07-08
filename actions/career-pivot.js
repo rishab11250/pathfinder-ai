@@ -1,16 +1,34 @@
 "use server";
+import { executeSecurePrompt } from "@/lib/prompt-execution";
+import { returnRecord } from "@/lib/record-response";
 import { handleServerError } from "@/lib/error-handler";
+import { createJsonOutputRules } from "@/lib/output-rules";
+import { executeAiWorkflow } from "@/lib/ai-workflow";
+import { PROMPT_CONTEXTS } from "@/lib/prompt-contexts";
+import { executeAiLifecycle } from "@/lib/ai-lifecycle";
+import { createValidationResponse } from "@/lib/validation-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { createJsonOutputRules } from "@/lib/output-rules";
+import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
+import { createSuccessResponse } from "@/lib/action-success";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
+import { buildParsedResult } from "@/lib/parsed-ai";
 import { auth } from "@clerk/nextjs/server";
+import { createHistoryResponse } from "@/lib/history-response";
 import { createPromptConfig } from "@/lib/prompt-config";
 import { revalidatePath } from "next/cache";
+import { createOutputRules } from "@/lib/output-rules";
 import { createErrorResponse } from "@/lib/action-errors";
+import { completePersistence } from "@/lib/persistence-complete";
+import { createRecord } from "@/lib/record-create";
 import { getAuthenticatedUserId } from "@/lib/auth-userid";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
+import { parseAiOutput } from "@/lib/ai-output";
+import { getAuthenticatedUser } from "@/lib/authenticated-history";
 
 /** Generate a career pivot strategy based on user goals. */
 export async function generatePivotStrategy(currentRole, targetRole) {
@@ -21,19 +39,22 @@ export async function generatePivotStrategy(currentRole, targetRole) {
   if (!user) return createErrorResponse("User not found");
 
   if (!currentRole || !targetRole) {
-    return { success: false, errors: { _form: ["Both current and target roles are required."] } };
+    return createValidationResponse(
+    "Both current and target roles are required."
+  );
   }
 
-  const prompt = buildSecurePrompt(
-  createPromptConfig({
-    context: "You are an expert career transition coach.",
-    task: `Analyze a career pivot from '${currentRole}' to '${targetRole}'. 
-    Identify the hidden transferable skills the candidate already has, the major skill gaps they need to close, and a step-by-step roadmap to make the transition.`,
-    untrustedData: [
-      { label: "currentRole", value: currentRole, maxLength: 100 },
-      { label: "targetRole", value: targetRole, maxLength: 100 },
-    ],
-    outputRules: `Provide the output in the following JSON format ONLY:
+  try {
+    const aiResult = await executeSecurePrompt(
+      createPromptConfig({
+        context: "You are an expert career transition coach.",
+        task: `Analyze a career pivot from '${currentRole}' to '${targetRole}'.
+        Identify the hidden transferable skills the candidate already has, the major skill gaps they need to close, and a step-by-step roadmap to make the transition.`,
+        untrustedData: [
+          { label: "currentRole", value: currentRole, maxLength: 100 },
+          { label: "targetRole", value: targetRole, maxLength: 100 },
+        ],
+        outputRules: createJsonOutputRules(`Provide the output in the following JSON format ONLY:
 {
   "transferableSkills": [
     "Skill 1 (and how it translates)",
@@ -48,35 +69,31 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     { "step": "Phase 2: Portfolio", "action": "What to build or prove" },
     { "step": "Phase 3: Networking & Application", "action": "How to position yourself" }
   ]
-}`,
-  })
-);
+}`)),
+      })
+    );
 
   try {
     const aiResult = await runAiGeneration(prompt);
+    const parsedData = parseAiResponse(aiResult);
     const parsedData = parseAIJson(aiResult.response.text());
 
-    const record = await db.careerPivot.create({
-      data: {
-        userId: user.id,
-        currentRole,
-        targetRole,
-        analysis: parsedData,
-      },
-    });
+    const record = await createRecord(db.careerPivot, {
+  userId: user.id,
+  currentRole,
+  targetRole,
+  ...withParsedData("result", parsedData),
+});
 
     revalidatePath("/career-pivot");
-    return { success: true, data: record };
+    return createSuccessResponse(record);
   } catch (error) {
     return handleServerError(error, "career-pivot");
   }
 }
 
 export async function getCareerPivots() {
-  const userId = await getAuthenticatedUserId(auth);
-  if (!userId) return { success: false, data: [] };
-
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  const user = await getAuthenticatedUser();
   if (!user) return { success: false, data: [] };
 
   const records = await getUserHistory(
@@ -84,6 +101,10 @@ export async function getCareerPivots() {
   user.id,
   { createdAt: "desc" }
 );
+
+  return createHistoryResponse(records);
+  return loadHistory(async () => {
+  const records = await db.careerBreakPlan.findMany(...);
 
   return { success: true, data: records };
 }
