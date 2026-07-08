@@ -41,6 +41,7 @@ export async function getUserSettings() {
 
   try {
     const user = await getUserByClerkId(userId);
+    if (!user) return normalizeSettings(null);
 
     const settings = await db.userSettings.findUnique({
       where: { userId: user.id },
