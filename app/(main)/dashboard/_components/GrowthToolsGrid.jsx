@@ -38,7 +38,9 @@ import {
   Home,
   Rocket,
   ShieldAlert,
-  BookOpenText
+  BookOpenText,
+  SearchCode,
+  MessagesSquare
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -50,6 +52,7 @@ const TOOL_CATEGORIES = [
       { name: "Resume Roast", desc: "Brutal AI feedback", icon: Flame, color: "bg-red-500/10 text-red-500 border-red-500/20", href: "/resume-roast" },
       { name: "Cover Letter", desc: "Tailored for success", icon: Mail, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/ai-cover-letter" },
       { name: "LinkedIn Optimizer", desc: "Profile audits", icon: ScanSearch, color: "bg-[#0A66C2]/10 text-[#0A66C2] border-[#0A66C2]/20", href: "/linkedin-optimizer" },
+      { name: "Portfolio Builder", desc: "AI generated portfolios", icon: LayoutList, color: "bg-teal-500/10 text-teal-500 border-teal-500/20", href: "/portfolio-builder" },
       { name: "LinkedIn Posts", desc: "Viral content creator", icon: Linkedin, color: "bg-[#0A66C2]/10 text-[#0A66C2] border-[#0A66C2]/20", href: "/linkedin-post" },
     ]
   },
@@ -69,6 +72,7 @@ const TOOL_CATEGORIES = [
   {
     category: "Job Search & Offers",
     tools: [
+      { name: "JD Decoder", desc: "Red flag detector", icon: SearchCode, color: "bg-destructive/10 text-destructive border-destructive/20", href: "/jd-decoder" },
       { name: "Job Tracker", desc: "Kanban board", icon: LayoutList, color: "bg-green-500/10 text-green-500 border-green-500/20", href: "/job-tracker" },
       { name: "Salary Coach", desc: "Negotiation scripts", icon: DollarSign, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/salary-negotiation" },
       { name: "Offer Comparer", desc: "Total comp calculator", icon: Calculator, color: "bg-teal-500/10 text-teal-500 border-teal-500/20", href: "/offer-comparer" },
@@ -97,6 +101,13 @@ const TOOL_CATEGORIES = [
       { name: "Remote Work Negotiator", desc: "Pitch remote transition", icon: Home, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/remote-work" },
       { name: "Manager README", desc: "User manual for you", icon: BookOpenText, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/manager-readme" },
       { name: "Imposter Syndrome", desc: "Reframing exercises", icon: ShieldAlert, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/imposter-syndrome" },
+      { name: "Toxic Escape Plan", desc: "Covert exit strategy", icon: ShieldAlert, color: "bg-red-500/10 text-red-500 border-red-500/20", href: "/toxic-workplace" },
+    ]
+  },
+  {
+    category: "Everyday Tools",
+    tools: [
+      { name: "Corporate Translator", desc: "AI Slack Diplomat", icon: MessagesSquare, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/translator" },
     ]
   }
 ];
