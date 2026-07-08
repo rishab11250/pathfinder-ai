@@ -39,7 +39,8 @@ import {
   Rocket,
   ShieldAlert,
   BookOpenText,
-  SearchCode
+  SearchCode,
+  MessagesSquare
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -100,6 +101,13 @@ const TOOL_CATEGORIES = [
       { name: "Remote Work Negotiator", desc: "Pitch remote transition", icon: Home, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", href: "/remote-work" },
       { name: "Manager README", desc: "User manual for you", icon: BookOpenText, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/manager-readme" },
       { name: "Imposter Syndrome", desc: "Reframing exercises", icon: ShieldAlert, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/imposter-syndrome" },
+      { name: "Toxic Escape Plan", desc: "Covert exit strategy", icon: ShieldAlert, color: "bg-red-500/10 text-red-500 border-red-500/20", href: "/toxic-workplace" },
+    ]
+  },
+  {
+    category: "Everyday Tools",
+    tools: [
+      { name: "Corporate Translator", desc: "AI Slack Diplomat", icon: MessagesSquare, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", href: "/translator" },
     ]
   }
 ];

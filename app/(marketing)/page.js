@@ -316,15 +316,6 @@ export default function LandingPage() {
 
       {/* The individual feature sections (Roadmap, Resume, Interview, SkillGap) have been unified into the ScrollStory component above. */}
 
-      {/* ------------- STATS SECTION ------------- */}
-      <section className="relative py-8 md:py-12 bg-muted/30 overflow-hidden">
-        <div className="container mx-auto px-4 md:px-6">
-          <FadeUp>
-            <HeroStats />
-          </FadeUp>
-        </div>
-      </section>
-
       {/* ------------- HOW IT WORKS ------------- */}
       <section id="how-it-works" className="relative py-8 md:py-12 scroll-mt-20">
         <div className="container mx-auto px-4 md:px-6">
@@ -359,6 +350,15 @@ export default function LandingPage() {
               </StaggerItem>
             ))}
           </StaggerContainer>
+        </div>
+      </section>
+
+      {/* ------------- STATS SECTION ------------- */}
+      <section id="stats" className="relative py-8 md:py-12 bg-muted/30 overflow-hidden">
+        <div className="container mx-auto px-4 md:px-6">
+          <FadeUp>
+            <HeroStats />
+          </FadeUp>
         </div>
       </section>
 
