@@ -2,6 +2,7 @@
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { returnRecord } from "@/lib/record-response";
 import { handleServerError } from "@/lib/error-handler";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { PROMPT_CONTEXTS } from "@/lib/prompt-contexts";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
@@ -68,7 +69,7 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     { "step": "Phase 2: Portfolio", "action": "What to build or prove" },
     { "step": "Phase 3: Networking & Application", "action": "How to position yourself" }
   ]
-}`),
+}`)),
       })
     );
 
