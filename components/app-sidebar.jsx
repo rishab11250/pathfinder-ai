@@ -20,6 +20,7 @@ const ClerkUserButton = dynamic(
 import {
   LayoutDashboard,
   Bot,
+  Volume2,
   FileText,
   Mail,
   Mic,
@@ -57,6 +58,7 @@ import {
   HeartPulse,
   Rocket,
   Home,
+  Building2,
   Github,
   Workflow,
   CalendarHeart,
@@ -76,6 +78,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const MENU_GROUPS = [
@@ -109,6 +112,7 @@ const MENU_GROUPS = [
       { href: "/interview/star-builder", label: "STAR Builder", icon: <Star className="h-4 w-4 text-yellow-500" />, shortcut: "" },
       { href: "/interview/cheat-sheet", label: "Cheat Sheet", icon: <FileSearch className="h-4 w-4 text-zinc-500" />, shortcut: "" },
       { href: "/behavioral-prep", label: "Behavioral Prep", icon: <BrainCircuit className="h-4 w-4 text-rose-500" />, shortcut: "" },
+      { href: "/culture-matcher", label: "Culture Matcher", icon: <Building2 className="h-4 w-4 text-cyan-500" />, shortcut: "" },
       { href: "/coffee-chat", label: "Coffee Chat", icon: <Coffee className="h-4 w-4 text-amber-500" />, shortcut: "" },
       { href: "/assignment-grader", label: "Take-Home Grader", icon: <Code2 className="h-4 w-4 text-violet-500" />, shortcut: "" },
     ]
@@ -156,6 +160,12 @@ const MENU_GROUPS = [
     ]
   },
   {
+    title: "Accessibility",
+    items: [
+      { href: "/ocr-reader", label: "OCR Reader", icon: <Volume2 className="h-4 w-4 text-primary" />, shortcut: "" },
+    ]
+  },
+  {
     title: "System",
     items: [
       { href: "/settings", label: "Settings", icon: <Settings className="h-4 w-4" />, shortcut: "" },
@@ -191,37 +201,37 @@ export default function AppSidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border relative text-sidebar-foreground font-sans">
       {/* Brand Header */}
-      <div className={cn(
-        "pt-8 pb-6 px-6 flex items-center mb-4 transition-all duration-300",
-        isOpen || isMobile ? "gap-3" : "justify-center"
-      )}>
-        <div className="relative group shrink-0">
-          <div className="absolute -inset-1.5 bg-gradient-to-tr from-primary to-purple-500 rounded-xl blur opacity-40 group-hover:opacity-100 transition duration-500" />
-          <div className="relative h-9 w-9 bg-sidebar-primary rounded-xl flex items-center justify-center shadow-2xl">
-            <Diamond className="h-5 w-5 text-sidebar-primary-foreground fill-current" />
+        <div className={cn(
+          "pt-8 pb-6 px-6 flex items-center mb-4 transition-all duration-300",
+          isOpen || isMobile ? "gap-3" : "justify-center"
+        )}>
+          <div className="relative group shrink-0">
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-primary to-purple-500 rounded-xl blur opacity-40 group-hover:opacity-100 transition duration-500" />
+            <div className="relative h-9 w-9 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden">
+              <Image src="/logo.png" alt="PathFinder AI" fill className="object-contain p-1" />
+            </div>
           </div>
-        </div>
-        
-        {(isOpen || isMobile) && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex flex-col flex-1 min-w-0"
-          >
-            <span className="font-black text-lg tracking-tighter text-foreground leading-none">PathFinder <span className="text-primary">AI</span></span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">Enterprise Core</span>
-          </motion.div>
-        )}
+          
+          {(isOpen || isMobile) && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex flex-col flex-1 min-w-0"
+            >
+              <span className="font-black text-lg tracking-tighter text-foreground leading-none">PathFinder <span className="text-primary">AI</span></span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">Enterprise Core</span>
+            </motion.div>
+          )}
 
-        {!isMobile && (
-          <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className="ml-auto p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground hidden lg:block"
-          >
-            {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </button>
-        )}
-      </div>
+          {!isMobile && (
+            <button 
+              onClick={() => setIsOpen(!isOpen)}
+              className="ml-auto p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground hidden lg:block"
+            >
+              {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          )}
+        </div>
 
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-8 custom-scrollbar">

@@ -3,8 +3,10 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   findUniqueUser: vi.fn(),
-  relocationCreate: vi.fn(),
+  relocationAnalysisCreate: vi.fn(),
   generateGeminiContent: vi.fn(),
+  checkRateLimit: vi.fn(),
+  formatResetTime: vi.fn(),
 }));
 
 vi.mock("@clerk/nextjs/server", () => ({
@@ -17,13 +19,18 @@ vi.mock("@/lib/prisma", () => ({
       findUnique: mocks.findUniqueUser,
     },
     relocationAnalysis: {
-      create: mocks.relocationCreate,
+      create: mocks.relocationAnalysisCreate,
     },
   },
 }));
 
 vi.mock("@/lib/gemini", () => ({
   generateGeminiContent: mocks.generateGeminiContent,
+}));
+
+vi.mock("@/lib/rate-limit-actions", () => ({
+  checkRateLimit: mocks.checkRateLimit,
+  formatResetTime: mocks.formatResetTime,
 }));
 
 vi.mock("next/cache", () => ({
@@ -35,6 +42,7 @@ import { analyzeRelocation } from "../actions/relocation.js";
 describe("analyzeRelocation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.formatResetTime.mockReturnValue("60 minutes");
   });
 
   it("returns unauthorized when user is not authenticated", async () => {
@@ -52,6 +60,7 @@ describe("analyzeRelocation", () => {
 
   it("returns validation error when required inputs are missing", async () => {
     mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
     mocks.findUniqueUser.mockResolvedValue({
       id: "db-user-1",
     });
@@ -68,6 +77,7 @@ describe("analyzeRelocation", () => {
 
   it("returns error when user is not found", async () => {
     mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
     mocks.findUniqueUser.mockResolvedValue(null);
 
     const result = await analyzeRelocation(
@@ -81,6 +91,7 @@ describe("analyzeRelocation", () => {
 
   it("creates relocation analysis successfully", async () => {
     mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
 
     mocks.findUniqueUser.mockResolvedValue({
       id: "db-user-1",
@@ -99,7 +110,7 @@ describe("analyzeRelocation", () => {
       },
     });
 
-    mocks.relocationCreate.mockResolvedValue({
+    mocks.relocationAnalysisCreate.mockResolvedValue({
       id: "relocation-1",
     });
 
@@ -111,11 +122,12 @@ describe("analyzeRelocation", () => {
 
     expect(result.success).toBe(true);
     expect(mocks.generateGeminiContent).toHaveBeenCalled();
-    expect(mocks.relocationCreate).toHaveBeenCalled();
+    expect(mocks.relocationAnalysisCreate).toHaveBeenCalled();
   });
 
   it("handles AI generation failure gracefully", async () => {
     mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
 
     mocks.findUniqueUser.mockResolvedValue({
       id: "db-user-1",
@@ -133,4 +145,44 @@ describe("analyzeRelocation", () => {
 
     expect(result.success).toBe(false);
   });
+
+
+    
+  
+
+  it("successfully analyzes relocation when within rate limits", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+    mocks.generateGeminiContent.mockResolvedValue({
+      response: {
+        text: () => JSON.stringify({
+          costOfLivingComparison: "Comparison",
+          salaryEquivalent: 120000,
+          negotiationScripts: [],
+          relocationAdvice: "Advice",
+        }),
+      },
+    });
+    mocks.relocationAnalysisCreate.mockResolvedValue({ id: "reloc-1" });
+
+    const result = await analyzeRelocation("New York", "San Francisco", "100000");
+
+    expect(result.success).toBe(true);
+    expect(mocks.checkRateLimit).toHaveBeenCalledWith("user-1", "relocation");
+    expect(mocks.relocationAnalysisCreate).toHaveBeenCalled();
+  });
+
+  it("fails when rate limit is exceeded", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: false, resetAt: new Date() });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+
+    const result = await analyzeRelocation("New York", "San Francisco", "100000");
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form[0]).toContain("limit reached");
+    expect(mocks.relocationAnalysisCreate).not.toHaveBeenCalled();
+  });
 });
+

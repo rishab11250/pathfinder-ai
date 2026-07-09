@@ -54,52 +54,55 @@ model User {
   coverLetter           CoverLetter[]
   conversations         Conversation[]
   resume                Resume?
+  portfolio             Portfolio?
   industryInsight       IndustryInsight?       @relation(fields: [industry], references: [industry])
   atsAnalyses           AtsAnalysis[]
   settings              UserSettings?
   roadmaps              Roadmap[]
   jobApplications       JobApplication[]
   linkedinOptimizations LinkedInOptimization[]
-  githubAnalyses       GithubAnalysis[]
-  networkingEmails     NetworkingEmail[]
-  projectIdeas         ProjectIdea[]
-  resumeGenerations    ResumeGeneration[]
-  starStories          StarStory[]
-  recruiterEmails      RecruiterEmail[]
-  interviewCheatSheets InterviewCheatSheet[]
-  linkedinPosts        LinkedInPost[]
-  offerComparisons     OfferComparison[]
-  careerPivots         CareerPivot[]
-  onboardingPlans      OnboardingPlan[]
-  resignationLetters   ResignationLetter[]
-  promotionStrategies  PromotionStrategy[]
-  freelanceProposals   FreelanceProposal[]
-  behavioralPreps      BehavioralPrep[]
-  layoffStrategies     LayoffStrategy[]
-  coffeeChatSessions   CoffeeChatSession[]
-  equityAnalyses       EquityAnalysis[]
-  assignmentGrades     AssignmentGrade[]
-  burnoutAssessments   BurnoutAssessment[]
-  sideHustleIdeas      SideHustleIdea[]
-  remoteWorkPitches    RemoteWorkPitch[]
-  internalTransfers    InternalTransfer[]
-  careerBreakPlans     CareerBreakPlan[]
-  visaStrategies       VisaStrategy[]
-  relocationAnalyses   RelocationAnalysis[]
-  mentorOutreaches     MentorOutreach[]
-  toxicWorkplaces      ToxicWorkplaceEscape[]
-  freelanceRates       FreelanceRate[]
-  ikigaiDiscoveries    IkigaiDiscovery[]
-  performanceReviews   PerformanceReview[]
-  imposterSyndromes    ImposterSyndrome[]
-  managerReadmes       ManagerReadme[]
-  skillGapAnalyses     SkillGapAnalysis[]
-  founderReadinesses   FounderReadiness[]
-  executivePresences   ExecutivePresence[]
+  cultureMatches        CultureMatch[]
+  githubAnalyses        GithubAnalysis[]
+  networkingEmails      NetworkingEmail[]
+  projectIdeas          ProjectIdea[]
+  resumeGenerations     ResumeGeneration[]
+  starStories           StarStory[]
+  recruiterEmails       RecruiterEmail[]
+  interviewCheatSheets  InterviewCheatSheet[]
+  linkedinPosts         LinkedInPost[]
+  offerComparisons      OfferComparison[]
+  careerPivots          CareerPivot[]
+  onboardingPlans       OnboardingPlan[]
+  resignationLetters    ResignationLetter[]
+  promotionStrategies   PromotionStrategy[]
+  freelanceProposals    FreelanceProposal[]
+  behavioralPreps       BehavioralPrep[]
+  layoffStrategies      LayoffStrategy[]
+  coffeeChatSessions    CoffeeChatSession[]
+  equityAnalyses        EquityAnalysis[]
+  assignmentGrades      AssignmentGrade[]
+  burnoutAssessments    BurnoutAssessment[]
+  sideHustleIdeas       SideHustleIdea[]
+  remoteWorkPitches     RemoteWorkPitch[]
+  internalTransfers     InternalTransfer[]
+  careerBreakPlans      CareerBreakPlan[]
+  visaStrategies        VisaStrategy[]
+  relocationAnalyses    RelocationAnalysis[]
+  mentorOutreaches      MentorOutreach[]
+  toxicWorkplaces       ToxicWorkplaceEscape[]
+  freelanceRates        FreelanceRate[]
+  ikigaiDiscoveries     IkigaiDiscovery[]
+  performanceReviews    PerformanceReview[]
+  imposterSyndromes     ImposterSyndrome[]
+  managerReadmes        ManagerReadme[]
+  skillGapAnalyses      SkillGapAnalysis[]
+  founderReadinesses    FounderReadiness[]
+  executivePresences    ExecutivePresence[]
 
-  exportRecords       ExportRecord[]
-  auditLogs           AuditLog[]
-  resumeMatchAnalyses ResumeMatchAnalysis[]
+  exportRecords         ExportRecord[]
+  auditLogs             AuditLog[]
+  resumeMatchAnalyses   ResumeMatchAnalysis[]
+  mockInterviewSessions MockInterviewSession[]
 }
 
 model Assessment {
@@ -798,4 +801,42 @@ model ResumeMatchAnalysis {
   createdAt            DateTime @default(now())
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     Json // hero, about, experience, projects, skills, contact
+  theme       String   @default("modern")
+  slug        String   @unique
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CultureMatch {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyUrl     String?  @db.Text
+  companyContent String?  @db.Text
+  analysis       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model MockInterviewSession {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  technicalScore     Float
+  communicationScore Float
+  grammarScore       Float
+  overallScore       Float
+  feedback           String?  @db.Text
+  createdAt          DateTime @default(now())
+
+  @@index([userId])
 }

@@ -41,7 +41,7 @@ async function getDashboardData() {
     include: { industryInsight: true },
   });
 
-  if (!user) redirect("/sign-in");
+  if (!user) redirect("/onboarding");
   if (!user.industry) redirect("/onboarding");
 
   let insight = user.industryInsight;
