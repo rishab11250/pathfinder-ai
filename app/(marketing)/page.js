@@ -22,6 +22,7 @@ import { faqs } from "@/data/faqs";
 import { Resume3DHero } from "@/components/landing/resume-3d-hero";
 import { AnimatedBackground } from "@/components/landing/animated-background";
 import { FeaturesGrid, PricingGrid, Testimonials, FAQ } from "@/components/landing/premium-sections";
+import { StoryboardHero } from "@/components/landing/storyboard-hero";
 import {
   Accordion,
   AccordionContent,
@@ -46,108 +47,8 @@ export default function LandingPage() {
       <AnimatedBackground />
       <GlobalScrollTracker />
       
-      {/* ------------- HERO SECTION ------------- */}
-      <section id="hero" className="relative min-h-[100vh] flex flex-col justify-center pt-32 pb-20 overflow-hidden">
-
-        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="w-full">
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-              {/* Left Column */}
-              <div className="space-y-10">
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-primary/20 shadow-sm"
-                >
-                  <div className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-foreground/80 flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3 text-primary" />
-                    AI-Powered Career Platform
-                  </span>
-                </motion.div>
-
-                <div className="space-y-6">
-                  <motion.h1
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-foreground"
-                  >
-                    Your Career,
-                    <br />
-                    <span className="text-gradient-primary">Amplified by AI.</span>
-                  </motion.h1>
-
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-lg"
-                  >
-                    From resume optimization to interview mastery, PathFinder AI gives you the tools to accelerate your career with artificial intelligence.
-                  </motion.p>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex flex-col sm:flex-row items-start gap-4"
-                >
-                  <MagneticButton asChild>
-                    <Button
-                      size="lg"
-                      onClick={handleDashboard}
-                      className="h-14 px-8 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/40 font-bold group text-base"
-                    >
-                      Launch Your Career
-                      <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </MagneticButton>
-
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => {
-                      document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
-                    }}
-                    className="h-14 px-8 rounded-2xl glass hover:bg-muted/50 border-border/50 transition-all duration-300 font-bold group text-base"
-                  >
-                    Explore Features
-                    <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex items-center gap-6 text-xs text-muted-foreground"
-                >
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="h-8 w-8 rounded-full border-2 border-background bg-muted/50 flex items-center justify-center text-[10px] font-bold text-muted-foreground"
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </div>
-                    ))}
-                  </div>
-                  <span>Trusted by 10,000+ professionals</span>
-                </motion.div>
-              </div>
-
-              {/* Right Column - 3D Resume Card Hero */}
-              <Resume3DHero />
-            </div>
-          </div>
-        </motion.div>
-      </section>
+      {/* ------------- STORYBOARD HERO SECTION ------------- */}
+      <StoryboardHero autoPlay={true} interval={5000} />
 
       {/* ------------- SCROLL STORY ------------- */}
       <ScrollStory />
