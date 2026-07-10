@@ -8,6 +8,7 @@ import {
   DEFAULT_BUCKET_TTL_MS,
   withDefaultCheckAndDeduct,
 } from "../lib/rate-limit/store.js";
+import { unwrap, isMiss } from "../lib/redis-result.js";
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_REDIS_URL = process.env.REDIS_URL;
@@ -34,7 +35,7 @@ function makeFakeRedisClient() {
     async get(key) {
       return data.has(key) ? data.get(key) : null;
     },
-    async set(key, value) {
+    async set(key, value, options) {
       data.set(key, value);
     },
     async del(key) {
@@ -113,7 +114,9 @@ it("memory store evicts stale buckets", async () => {
 
   await store.cleanupExpiredBuckets(2000);
 
-  expect(await store.getBucket("/api/generate:user:1")).toBeNull();
+  const result = await store.getBucket("/api/generate:user:1");
+  expect(isMiss(result)).toBe(true);
+  expect(unwrap(result)).toBeNull();
 });
 
 it("factory defaults to memory storage when redis is not configured", () => {
@@ -234,11 +237,12 @@ it("memory store evicts stale buckets lazily via getBucket", async () => {
   });
 
   // Call getBucket with a timestamp past the TTL
-  const bucket = await store.getBucket("/api/generate:user:1", 2000);
-  expect(bucket).toBeNull();
+  const result = await store.getBucket("/api/generate:user:1", 2000);
+  expect(isMiss(result)).toBe(true);
 
   // Verify it was actually deleted from internal storage
-  expect(await store.getBucket("/api/generate:user:1")).toBeNull();
+  const result2 = await store.getBucket("/api/generate:user:1");
+  expect(isMiss(result2)).toBe(true);
 
   await store.close();
 });
@@ -295,8 +299,8 @@ it("memory store evicts stale buckets periodically via cleanupIntervalMs", async
   await new Promise((resolve) => setTimeout(resolve, 100));
 
   // The bucket should be gone from the store even when querying at current time
-  const bucket = await store.getBucket("/api/generate:user:1");
-  expect(bucket).toBeNull();
+  const result = await store.getBucket("/api/generate:user:1");
+  expect(isMiss(result)).toBe(true);
 
   await store.close();
 });
@@ -419,7 +423,8 @@ it("cleanupExpiredBuckets wrapper cleans up expired buckets via the store", asyn
   // in favor of its own bucketTtlMs, so 2000ms > 100ms TTL should evict
   await cleanupExpiredBuckets(store, 2000);
 
-  expect(await store.getBucket("/api/generate:user:stale")).toBeNull();
+  const result = await store.getBucket("/api/generate:user:stale");
+  expect(isMiss(result)).toBe(true);
 
   await store.close();
 });
@@ -437,7 +442,8 @@ it("cleanupExpiredBuckets wrapper does not remove fresh buckets", async () => {
   // now is the same as lastRefillAt, so bucket is fresh
   await cleanupExpiredBuckets(store, Date.now());
 
-  const bucket = await store.getBucket("/api/generate:user:fresh");
+  const result = await store.getBucket("/api/generate:user:fresh");
+  const bucket = unwrap(result);
   expect(bucket).not.toBeNull();
   expect(bucket.tokens).toBe(5);
 
@@ -550,7 +556,8 @@ describe("withDefaultCheckAndDeduct (fallback path)", () => {
     expect(allowed.length).toBeLessThanOrEqual(BURST);
 
     // Verify bucket was created only once
-    const bucket = await store.getBucket(key, 1_000);
+    const result = await store.getBucket(key, 1_000);
+    const bucket = unwrap(result);
     expect(bucket).not.toBeNull();
     expect(bucket.burstCapacity).toBe(BURST);
 
@@ -720,16 +727,16 @@ describe("withDefaultCheckAndDeduct (fallback path)", () => {
       data: new Map(),
       async getBucket(key, now) {
         const bucket = this.data.get(key);
-        if (!bucket) return null;
+        if (!bucket) return { status: "miss", value: null, isSuccess: false, isMiss: true, isError: false };
         if (now >= bucket.lastRefillAt + 60_000) {
           this.data.delete(key);
-          return null;
+          return { status: "miss", value: null, isSuccess: false, isMiss: true, isError: false };
         }
-        return bucket;
+        return { status: "success", value: bucket, isSuccess: true, isMiss: false, isError: false };
       },
       async setBucket(key, bucket) {
         this.data.set(key, bucket);
-        return true;
+        return { status: "success", value: true, isSuccess: true, isMiss: false, isError: false };
       },
     };
 
