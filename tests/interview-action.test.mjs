@@ -42,6 +42,7 @@ vi.mock("@/lib/cache", async () => {
     cacheStore: {
       get: actionMocks.cacheGet,
       delete: actionMocks.cacheDelete,
+      set: vi.fn(async (key, value) => ({ status: "success", value: true, isSuccess: true, isMiss: false, isError: false })),
     },
   };
 });

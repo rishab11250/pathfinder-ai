@@ -119,21 +119,72 @@ Respond ONLY with a valid JSON object in this exact format (no markdown, no code
       throw new Error("AI returned an unexpected format.");
     }
 
+    const parsedData = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+
+    // Delete existing milestones if they exist
+    await db.roadmapMilestone.deleteMany({
+      where: { roadmap: { userId: user.id } },
+    });
+
     // Upsert — each user has at most one roadmap
     const roadmap = await db.roadmap.upsert({
       where: { userId: user.id },
       create: {
-        content: result.data,
+        content: parsedData,
         userId: user.id,
+        milestones: {
+          create: parsedData.milestones.map((m) => ({
+            title: m.title,
+            description: m.description,
+            skillsToLearn: m.skillsToLearn || [],
+            estimatedDuration: m.estimatedDuration,
+            priority: m.priority,
+            isCompleted: false,
+          })),
+        }
       },
       update: {
-        content: result.data,
+        content: parsedData,
+        milestones: {
+          create: parsedData.milestones.map((m) => ({
+            title: m.title,
+            description: m.description,
+            skillsToLearn: m.skillsToLearn || [],
+            estimatedDuration: m.estimatedDuration,
+            priority: m.priority,
+            isCompleted: false,
+          })),
+        }
       },
+      include: {
+        milestones: {
+          orderBy: { createdAt: 'asc' }
+        }
+      }
     });
 
     // Return with success flag
     const returnData = { ...roadmap, isFallback: false };
     return returnData;
+  } catch (error) {
+    return handleServerError(error, "roadmap");
+  }
+}
+
+import { revalidatePath } from "next/cache";
+
+export async function toggleMilestoneCompletion(milestoneId, isCompleted) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const milestone = await db.roadmapMilestone.update({
+      where: { id: milestoneId },
+      data: { isCompleted },
+    });
+
+    revalidatePath("/roadmap");
+    return { milestone, error: null };
   } catch (error) {
     return handleServerError(error, "roadmap");
   }
@@ -155,6 +206,11 @@ export async function getRoadmap() {
 
     const roadmap = await db.roadmap.findUnique({
       where: { userId: user.id },
+      include: {
+        milestones: {
+          orderBy: { createdAt: 'asc' }
+        }
+      }
     });
     
     return { roadmap: roadmap || null, error: null };

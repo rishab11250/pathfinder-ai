@@ -141,7 +141,7 @@ export default function AIMentorChat() {
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground opacity-80">
                     <Bot className="w-12 h-12 text-primary/40" />
                     <div className="max-w-[250px]">
-                      <p className="text-sm">Hi! I'm your AI Career Mentor.</p>
+                      <p className="text-sm">Hi! I&apos;m your AI Career Mentor.</p>
                       <p className="text-xs mt-1">I can help you analyze your skills, prepare for interviews, and optimize your resume.</p>
                     </div>
                   </div>

@@ -7,7 +7,6 @@ import { createJsonOutputRules } from "@/lib/output-rules";
 import { createValidationResponse } from "@/lib/validation-response";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
-import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { createSuccessResponse } from "@/lib/action-success";
@@ -106,6 +105,3 @@ export async function getCareerBreakPlans() {
 
   return createHistoryResponse(records);
 }
-
-  return { success: true, data: records };
-

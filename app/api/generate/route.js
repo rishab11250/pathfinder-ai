@@ -25,6 +25,7 @@ import {
   getPendingGenerationRequest,
   setPendingGenerationRequest,
   deletePendingGenerationRequest,
+  getOrCreatePendingRequest,
 } from "@/lib/cache/cache-service";
 import { respondError, respondSseError, ERROR_CODES } from "@/lib/api/error-handler";
 import { validateInput, validateId } from "@/lib/validate";
@@ -279,12 +280,6 @@ export async function POST(request) {
       })
     : [];
 
-  let generationCompletionResolve, generationCompletionReject;
-  const generationCompletionPromise = new Promise((resolve, reject) => {
-    generationCompletionResolve = resolve;
-    generationCompletionReject = reject;
-  });
-
   const aiContext = buildUserAiContext(user, recentMessages.reverse());
 
   const restrictedPrompt = buildSecurePrompt({
@@ -315,36 +310,6 @@ Rules:
       { label: "userQuery", value: promptCheck.prompt, maxLength: 4000 },
     ],
   });
-
-
-  // Check for pending request (deduplication)
-  const pendingRequest = await getPendingGenerationRequest(
-    cacheUser,
-    promptCheck.prompt
-  );
-
-  if (pendingRequest) {
-    try {
-      await pendingRequest;
-    } catch (error) {
-      // Pending request failed, we'll proceed with our own generation
-      console.warn("[dedup] Pending request failed, proceeding with new generation");
-    }
-
-    const cachedAfterPending = await getCachedResponse(
-      cacheUser,
-      restrictedPrompt
-    );
-
-    if (cachedAfterPending) {
-      return createCachedSseResponse({
-        text: cachedAfterPending,
-        headers: SSE_BASE_HEADERS,
-        cacheStatus: "DEDUP",
-        deduped: true,
-      });
-    }
-  }
 
   const restrictedCachedResponse = await getCachedResponse(
     cacheUser,
@@ -395,9 +360,76 @@ Rules:
     });
   }
 
+  // Atomic deduplication: ensure only one generation occurs for this cache key
+  // The previous implementation had a race condition where multiple concurrent requests
+  // could all observe no pending request and proceed to create independent generations.
+  // This implementation uses atomic registration to prevent that race.
+  const cacheKey = `${cacheUser}:${promptCheck.prompt}`;
+  
+  // Atomically get or create the pending request BEFORE any async work
+  const { promise: pendingPromise, isCreator, resolve: resolvePending, reject: rejectPending } = 
+    getOrCreatePendingRequest(cacheKey);
+
   const encoder = new TextEncoder();
   const abortController = new AbortController();
 
+  // If we're not the creator, return a stream that waits for the pending request
+  // and then returns the cached result
+  if (!isCreator) {
+    const dedupStream = new ReadableStream({
+      async start(controller) {
+        try {
+          // Wait for the pending request to complete
+          await pendingPromise;
+        } catch (error) {
+          // Pending request failed, we'll return an error
+          console.warn("[dedup] Pending request failed", error);
+          controller.enqueue(
+            encodeSseEvent(encoder, "error", {
+              message: "Generation failed. Please try again.",
+            })
+          );
+          controller.close();
+          return;
+        }
+
+        // After waiting, check cache again
+        const cachedAfterPending = await getCachedResponse(cacheUser, restrictedPrompt);
+        if (cachedAfterPending) {
+          controller.enqueue(
+            encodeSseEvent(encoder, "delta", {
+              text: cachedAfterPending,
+              cached: true,
+              deduped: true,
+            })
+          );
+          controller.enqueue(
+            encodeSseEvent(encoder, "done", {
+              finalText: cachedAfterPending,
+              hasContent: true,
+              cached: true,
+              deduped: true,
+            })
+          );
+          controller.close();
+        } else {
+          // No cache available after pending completed - shouldn't happen but handle gracefully
+          controller.enqueue(
+            encodeSseEvent(encoder, "error", {
+              message: "No cached result available. Please try again.",
+            })
+          );
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(dedupStream, {
+      headers: SSE_BASE_HEADERS,
+    });
+  }
+
+  // We are the creator - create the actual generation stream
   const stream = new ReadableStream({
     async start(controller) {
       let fullResponse = "";
@@ -484,7 +516,7 @@ Rules:
           }),
         });
         safeClose();
-        generationCompletionResolve(fullResponse);
+        resolvePending(fullResponse);
       } catch (error) {
         if (abortController.signal.aborted) {
           safeClose();
@@ -496,19 +528,16 @@ Rules:
           message: error?.message || "Unknown error",
         });
         safeClose();
-        generationCompletionReject(error);
+        rejectPending(error);
+      } finally {
+        // Always clean up the pending request
+        deletePendingGenerationRequest(cacheUser, promptCheck.prompt);
       }
     },
     cancel(reason) {
       console.warn("SSE stream cancelled by client connection abort:", reason);
       abortController.abort();
     },
-  });
-
-  // Set this request as pending for deduplication
-  setPendingGenerationRequest(cacheUser, promptCheck.prompt, generationCompletionPromise);
-  generationCompletionPromise.finally(() => {
-    deletePendingGenerationRequest(cacheUser, promptCheck.prompt);
   });
 
   return new Response(stream, {

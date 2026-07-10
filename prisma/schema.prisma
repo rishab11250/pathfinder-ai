@@ -61,47 +61,48 @@ model User {
   roadmaps              Roadmap[]
   jobApplications       JobApplication[]
   linkedinOptimizations LinkedInOptimization[]
-  cultureMatches       CultureMatch[]
-  githubAnalyses       GithubAnalysis[]
-  networkingEmails     NetworkingEmail[]
-  projectIdeas         ProjectIdea[]
-  resumeGenerations    ResumeGeneration[]
-  starStories          StarStory[]
-  recruiterEmails      RecruiterEmail[]
-  interviewCheatSheets InterviewCheatSheet[]
-  linkedinPosts        LinkedInPost[]
-  offerComparisons     OfferComparison[]
-  careerPivots         CareerPivot[]
-  onboardingPlans      OnboardingPlan[]
-  resignationLetters   ResignationLetter[]
-  promotionStrategies  PromotionStrategy[]
-  freelanceProposals   FreelanceProposal[]
-  behavioralPreps      BehavioralPrep[]
-  layoffStrategies     LayoffStrategy[]
-  coffeeChatSessions   CoffeeChatSession[]
-  equityAnalyses       EquityAnalysis[]
-  assignmentGrades     AssignmentGrade[]
-  burnoutAssessments   BurnoutAssessment[]
-  sideHustleIdeas      SideHustleIdea[]
-  remoteWorkPitches    RemoteWorkPitch[]
-  internalTransfers    InternalTransfer[]
-  careerBreakPlans     CareerBreakPlan[]
-  visaStrategies       VisaStrategy[]
-  relocationAnalyses   RelocationAnalysis[]
-  mentorOutreaches     MentorOutreach[]
-  toxicWorkplaces      ToxicWorkplaceEscape[]
-  freelanceRates       FreelanceRate[]
-  ikigaiDiscoveries    IkigaiDiscovery[]
-  performanceReviews   PerformanceReview[]
-  imposterSyndromes    ImposterSyndrome[]
-  managerReadmes       ManagerReadme[]
-  skillGapAnalyses     SkillGapAnalysis[]
-  founderReadinesses   FounderReadiness[]
-  executivePresences   ExecutivePresence[]
+  cultureMatches        CultureMatch[]
+  githubAnalyses        GithubAnalysis[]
+  networkingEmails      NetworkingEmail[]
+  projectIdeas          ProjectIdea[]
+  resumeGenerations     ResumeGeneration[]
+  starStories           StarStory[]
+  recruiterEmails       RecruiterEmail[]
+  interviewCheatSheets  InterviewCheatSheet[]
+  linkedinPosts         LinkedInPost[]
+  offerComparisons      OfferComparison[]
+  careerPivots          CareerPivot[]
+  onboardingPlans       OnboardingPlan[]
+  resignationLetters    ResignationLetter[]
+  promotionStrategies   PromotionStrategy[]
+  freelanceProposals    FreelanceProposal[]
+  behavioralPreps       BehavioralPrep[]
+  layoffStrategies      LayoffStrategy[]
+  coffeeChatSessions    CoffeeChatSession[]
+  equityAnalyses        EquityAnalysis[]
+  assignmentGrades      AssignmentGrade[]
+  burnoutAssessments    BurnoutAssessment[]
+  sideHustleIdeas       SideHustleIdea[]
+  remoteWorkPitches     RemoteWorkPitch[]
+  internalTransfers     InternalTransfer[]
+  careerBreakPlans      CareerBreakPlan[]
+  visaStrategies        VisaStrategy[]
+  relocationAnalyses    RelocationAnalysis[]
+  mentorOutreaches      MentorOutreach[]
+  toxicWorkplaces       ToxicWorkplaceEscape[]
+  freelanceRates        FreelanceRate[]
+  ikigaiDiscoveries     IkigaiDiscovery[]
+  performanceReviews    PerformanceReview[]
+  imposterSyndromes     ImposterSyndrome[]
+  managerReadmes        ManagerReadme[]
+  skillGapAnalyses      SkillGapAnalysis[]
+  founderReadinesses    FounderReadiness[]
+  executivePresences    ExecutivePresence[]
 
-  exportRecords       ExportRecord[]
-  auditLogs           AuditLog[]
-  resumeMatchAnalyses ResumeMatchAnalysis[]
+  exportRecords         ExportRecord[]
+  auditLogs             AuditLog[]
+  resumeMatchAnalyses   ResumeMatchAnalysis[]
+  mockInterviewSessions MockInterviewSession[]
 }
 
 model Assessment {
@@ -304,12 +305,29 @@ model AiRateLimit {
 }
 
 model Roadmap {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String             @id @default(cuid())
+  userId    String             @unique
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   content   Json // The full roadmap milestones JSON
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  milestones RoadmapMilestone[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model RoadmapMilestone {
+  id                String   @id @default(cuid())
+  roadmapId         String
+  roadmap           Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  title             String
+  description       String   @db.Text
+  skillsToLearn     String[]
+  estimatedDuration String
+  priority          String
+  isCompleted       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([roadmapId])
 }
 
 model JobApplication {
@@ -806,7 +824,7 @@ model Portfolio {
   id          String   @id @default(cuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content     Json     // hero, about, experience, projects, skills, contact
+  content     Json // hero, about, experience, projects, skills, contact
   theme       String   @default("modern")
   slug        String   @unique
   isPublished Boolean  @default(false)

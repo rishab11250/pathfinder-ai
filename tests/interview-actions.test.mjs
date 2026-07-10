@@ -161,7 +161,14 @@ describe("interview actions", () => {
         },
       ];
 
-      mocks.cacheGet.mockResolvedValue(cachedQuestions);
+      // Mock cacheGet to return structured result with questions
+      mocks.cacheGet.mockResolvedValue({ 
+        status: "success", 
+        value: cachedQuestions, 
+        isSuccess: true, 
+        isMiss: false, 
+        isError: false 
+      });
       mocks.createAssessment.mockImplementation(({ data }) => Promise.resolve({ id: "assessment-1", ...data }));
 
       // User got 1 correct and 1 wrong
@@ -192,7 +199,14 @@ describe("interview actions", () => {
         industry: "technology",
       });
 
-      mocks.cacheGet.mockResolvedValue(null);
+      // Mock cacheGet to return structured miss result
+      mocks.cacheGet.mockResolvedValue({ 
+        status: "miss", 
+        value: null, 
+        isSuccess: false, 
+        isMiss: true, 
+        isError: false 
+      });
 
       const sessionId = "12345678-1234-1234-1234-1234567890ac";
       const result = await saveQuizResult(sessionId, ["4"], "Technical");

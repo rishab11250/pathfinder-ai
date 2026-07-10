@@ -96,11 +96,11 @@ export default function TranslatorPage() {
                         key={t.value}
                         type="button"
                         onClick={() => setTone(t.value)}
-                        className={\`flex flex-col items-start p-3 rounded-xl border text-left transition-all \${
+                        className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all ${
                           tone === t.value 
                             ? "bg-blue-500/10 border-blue-500/30 shadow-sm" 
                             : "bg-background border-border/50 hover:border-border"
-                        }\`}
+                        }`}
                       >
                         <span className="text-sm font-bold flex items-center gap-2">
                           <span>{t.icon}</span> {t.value}
