@@ -41,10 +41,14 @@ export default function CareerDecisionSimulatorPage() {
 
   useEffect(() => {
     async function fetchHistory() {
-      const res = await getCareerDecisionSimulations();
-      if (res?.success && res.data?.length > 0) {
-        setHistory(res.data);
-        setActiveSimulation(res.data[0]);
+      try {
+        const res = await getCareerDecisionSimulations();
+        if (res?.success && res.data?.length > 0) {
+          setHistory(res.data);
+          setActiveSimulation(res.data[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch history:", error);
       }
     }
     fetchHistory();

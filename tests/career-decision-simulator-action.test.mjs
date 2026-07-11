@@ -191,7 +191,7 @@ describe("simulateCareerDecision", () => {
     expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
   });
 
-  it("handles database creation failure gracefully", async () => {
+  it("handles malformed AI output gracefully", async () => {
     mocks.auth.mockResolvedValue({ userId: "user-1" });
     mocks.checkRateLimit.mockResolvedValue({ allowed: true });
     mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
@@ -219,6 +219,56 @@ describe("simulateCareerDecision", () => {
         text: () => JSON.stringify(mockAIResponse),
       },
     });
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form).toBeDefined();
+    expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
+  });
+
+  it("handles database creation failure gracefully", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+    
+    const mockAIResponse = {
+      optionsAnalysis: [
+        {
+          option: "Option A",
+          pros: ["Good pay"],
+          cons: ["High stress"],
+          riskLevel: "Medium",
+          shortTermImpact: "Hard work",
+          longTermImpact: "Great experience",
+          skillsRequired: ["Resilience"]
+        },
+        {
+          option: "Option B",
+          pros: ["Low stress"],
+          cons: ["Lower pay"],
+          riskLevel: "Low",
+          shortTermImpact: "Easy transition",
+          longTermImpact: "Slower growth",
+          skillsRequired: []
+        }
+      ],
+      recommendedOption: "Option A",
+      reasoning: "Because of growth.",
+      nextStep: "Accept the offer.",
+      confidenceScore: 90
+    };
+
+    mocks.generateGeminiContent.mockResolvedValue({
+      response: {
+        text: () => JSON.stringify(mockAIResponse),
+      },
+    });
     
     mocks.careerDecisionSimulationCreate.mockRejectedValue(new Error("DB failed"));
 
@@ -231,6 +281,7 @@ describe("simulateCareerDecision", () => {
 
     expect(result.success).toBe(false);
     expect(result.errors._form).toBeDefined();
+    expect(mocks.careerDecisionSimulationCreate).toHaveBeenCalled();
   });
 });
 
