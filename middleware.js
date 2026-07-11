@@ -81,18 +81,8 @@ export default function middleware(req, event) {
     }
   }
 
-  if (isPublicRoute(req)) {
-    return NextResponse.next();
-  }
-
-  if (isProtectedApiRoute(req)) {
-    await auth.protect();
-    return NextResponse.next();
-  }
-
-  await auth.protect();
-  return NextResponse.next();
-});
+  return clerkHandler(req, event);
+}
 
 export const config = {
   matcher: [
