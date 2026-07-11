@@ -14,6 +14,7 @@ import { quizCategorySchema, quizResultSaveSchema, quizResultSaveSessionSchema }
 import { interviewQuestionsOutputSchema, voiceFeedbackOutputSchema, videoFeedbackOutputSchema } from "@/lib/schemas";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 import { translations } from "@/lib/translations";
+import { unwrap } from "@/lib/redis-result";
 
 // Fallback MCQ questions in case Gemini generation fails, categorized by industry
 const TECH_FALLBACK_QUESTIONS = [
@@ -648,7 +649,8 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
 
     const cacheStore = getCacheStore();
     const cacheKey = generateCacheKey("quiz-session", userId, validatedSessionId);
-    const questions = await cacheStore.get(cacheKey);
+    const questionsResult = await cacheStore.get(cacheKey);
+    const questions = unwrap(questionsResult);
 
     if (!questions || !Array.isArray(questions) || questions.length === 0) {
       throw new Error("Quiz session expired or not found. Please start a new quiz.");

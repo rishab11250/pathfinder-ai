@@ -79,6 +79,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const MENU_GROUPS = [
@@ -202,37 +203,37 @@ export default function AppSidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border relative text-sidebar-foreground font-sans">
       {/* Brand Header */}
-      <div className={cn(
-        "pt-8 pb-6 px-6 flex items-center mb-4 transition-all duration-300",
-        isOpen || isMobile ? "gap-3" : "justify-center"
-      )}>
-        <div className="relative group shrink-0">
-          <div className="absolute -inset-1.5 bg-gradient-to-tr from-primary to-purple-500 rounded-xl blur opacity-40 group-hover:opacity-100 transition duration-500" />
-          <div className="relative h-9 w-9 bg-sidebar-primary rounded-xl flex items-center justify-center shadow-2xl">
-            <Diamond className="h-5 w-5 text-sidebar-primary-foreground fill-current" />
+        <div className={cn(
+          "pt-8 pb-6 px-6 flex items-center mb-4 transition-all duration-300",
+          isOpen || isMobile ? "gap-3" : "justify-center"
+        )}>
+          <div className="relative group shrink-0">
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-primary to-purple-500 rounded-xl blur opacity-40 group-hover:opacity-100 transition duration-500" />
+            <div className="relative h-9 w-9 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden">
+              <Image src="/logo.png" alt="PathFinder AI" fill className="object-contain p-1" />
+            </div>
           </div>
-        </div>
-        
-        {(isOpen || isMobile) && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex flex-col flex-1 min-w-0"
-          >
-            <span className="font-black text-lg tracking-tighter text-foreground leading-none">PathFinder <span className="text-primary">AI</span></span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">Enterprise Core</span>
-          </motion.div>
-        )}
+          
+          {(isOpen || isMobile) && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex flex-col flex-1 min-w-0"
+            >
+              <span className="font-black text-lg tracking-tighter text-foreground leading-none">PathFinder <span className="text-primary">AI</span></span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">Enterprise Core</span>
+            </motion.div>
+          )}
 
-        {!isMobile && (
-          <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className="ml-auto p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground hidden lg:block"
-          >
-            {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </button>
-        )}
-      </div>
+          {!isMobile && (
+            <button 
+              onClick={() => setIsOpen(!isOpen)}
+              className="ml-auto p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground hidden lg:block"
+            >
+              {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          )}
+        </div>
 
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-8 custom-scrollbar">

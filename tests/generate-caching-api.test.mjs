@@ -46,20 +46,15 @@ vi.mock("@/lib/rate-limit", () => ({
 vi.mock("@/lib/cache/cache-service", () => ({
   getCachedResponse: mocks.getCachedResponse,
   cacheResponse: mocks.cacheResponse,
-  getPendingGenerationRequest: vi.fn(async () => null),
-  setPendingGenerationRequest: vi.fn(async () => {}),
-  deletePendingGenerationRequest: vi.fn(async () => {}),
   getPendingGenerationRequest: mocks.getPendingGenerationRequest,
   setPendingGenerationRequest: mocks.setPendingGenerationRequest,
   deletePendingGenerationRequest: mocks.deletePendingGenerationRequest,
-  getPendingGenerationRequest: vi.fn().mockResolvedValue(null),
-  setPendingGenerationRequest: vi.fn().mockResolvedValue(undefined),
-  deletePendingGenerationRequest: vi.fn().mockResolvedValue(undefined),
-  getPendingGenerationRequest: mocks.getPendingGenerationRequest,
-  setPendingGenerationRequest: mocks.setPendingGenerationRequest,
-  deletePendingGenerationRequest: mocks.deletePendingGenerationRequest,
-  setPendingGenerationRequest: vi.fn(),
-  deletePendingGenerationRequest: vi.fn(),
+  getOrCreatePendingRequest: vi.fn(() => ({
+    promise: Promise.resolve(),
+    isCreator: true,
+    resolve: vi.fn(),
+    reject: vi.fn(),
+  })),
 }));
 
 // We need to set up minimal env vars needed by the route

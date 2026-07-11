@@ -4,8 +4,11 @@ import PerformanceChart from "./_components/performace-chart";
 import QuizList from "./_components/quiz-list";
 import { Sparkles, Bot, Mic, Video } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function InterviewPrepPage() {
-  const assessments = await getAssessments();
+  const result = await getAssessments();
+  const assessments = Array.isArray(result) ? result : [];
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Sparkles, User, Briefcase, GraduationCap, Award, ChevronRight } from "lucide-react";
+import { Loader2, Sparkles, User, Briefcase, GraduationCap, Award, ChevronRight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -52,6 +52,7 @@ const OnboardingForm = ({ industries }) => {
     loading: updateLoading,
     fn: updateUserFn,
     data: updateResult,
+    error: updateError,
   } = useFetch(updateUser);
 
   const {
@@ -73,9 +74,11 @@ const OnboardingForm = ({ industries }) => {
       const formattedIndustry = `${values.industry}-${values.subIndustry
         .toLowerCase()
         .replace(/ /g, "-")}`;
-      await updateUserFn({ ...values, industry: formattedIndustry });
+      const { subIndustry, ...cleanValues } = values;
+      await updateUserFn({ ...cleanValues, industry: formattedIndustry });
     } catch (error) {
       console.error("Onboarding error:", error);
+      toast.error(error.message || "Failed to complete onboarding. Please try again.");
     }
   };
 

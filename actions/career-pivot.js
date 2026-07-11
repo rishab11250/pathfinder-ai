@@ -2,16 +2,17 @@
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { returnRecord } from "@/lib/record-response";
 import { handleServerError } from "@/lib/error-handler";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { PROMPT_CONTEXTS } from "@/lib/prompt-contexts";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { createValidationResponse } from "@/lib/validation-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
-import { createJsonOutputRules } from "@/lib/output-rules";
 import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
 import { createSuccessResponse } from "@/lib/action-success";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
 import { buildParsedResult } from "@/lib/parsed-ai";
 import { auth } from "@clerk/nextjs/server";
 import { createHistoryResponse } from "@/lib/history-response";
@@ -42,17 +43,16 @@ export async function generatePivotStrategy(currentRole, targetRole) {
   );
   }
 
-  try {
-    const aiResult = await executeSecurePrompt(
-      createPromptConfig({
-        context: "You are an expert career transition coach.",
-        task: `Analyze a career pivot from '${currentRole}' to '${targetRole}'.
-        Identify the hidden transferable skills the candidate already has, the major skill gaps they need to close, and a step-by-step roadmap to make the transition.`,
-        untrustedData: [
-          { label: "currentRole", value: currentRole, maxLength: 100 },
-          { label: "targetRole", value: targetRole, maxLength: 100 },
-        ],
-        outputRules: createJsonOutputRules(`Provide the output in the following JSON format ONLY:
+  const aiResult = await runAiGeneration(
+    createPromptConfig({
+      context: "You are an expert career transition coach.",
+      task: `Analyze a career pivot from '${currentRole}' to '${targetRole}'.
+      Identify the hidden transferable skills the candidate already has, the major skill gaps they need to close, and a step-by-step roadmap to make the transition.`,
+      untrustedData: [
+        { label: "currentRole", value: currentRole, maxLength: 100 },
+        { label: "targetRole", value: targetRole, maxLength: 100 },
+      ],
+      outputRules: createJsonOutputRules(`Provide the output in the following JSON format ONLY:
 {
   "transferableSkills": [
     "Skill 1 (and how it translates)",
@@ -68,23 +68,19 @@ export async function generatePivotStrategy(currentRole, targetRole) {
     { "step": "Phase 3: Networking & Application", "action": "How to position yourself" }
   ]
 }`),
-      })
-    );
+    })
+  );
+  const parsedData = parseAiResponse(aiResult);
 
-    const parsedData = parseAIJson(aiResult.response.text());
+  const record = await createRecord(db.careerPivot, {
+    userId: user.id,
+    currentRole,
+    targetRole,
+    ...withParsedData("result", parsedData),
+  });
 
-    const record = await createRecord(db.careerPivot, {
-  userId: user.id,
-  currentRole,
-  targetRole,
-  ...withParsedData("result", parsedData),
-});
-
-    revalidatePath("/career-pivot");
-    return createSuccessResponse(record);
-  } catch (error) {
-    return handleServerError(error, "career-pivot");
-  }
+  revalidatePath("/career-pivot");
+  return createSuccessResponse(record);
 }
 
 export async function getCareerPivots() {
@@ -98,8 +94,4 @@ export async function getCareerPivots() {
 );
 
   return createHistoryResponse(records);
-  return loadHistory(async () => {
-  const records = await db.careerBreakPlan.findMany(...);
-
-  return { success: true, data: records };
 }

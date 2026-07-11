@@ -3,15 +3,16 @@ import { getAuthenticatedUser } from "@/lib/authenticated-history";
 import { handleServerError } from "@/lib/error-handler";
 import { returnRecord } from "@/lib/record-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { createJsonOutputRules } from "@/lib/output-rules";
 import { createValidationResponse } from "@/lib/validation-response";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { getUserHistory } from "@/lib/history-query";
-import { createJsonOutputRules } from "@/lib/output-rules";
 import { executeSecurePrompt } from "@/lib/prompt-execution";
 import { executeAiWorkflow } from "@/lib/ai-workflow";
 import { createSuccessResponse } from "@/lib/action-success";
 import { loadHistory } from "@/lib/history-loader";
 import { db } from "@/lib/prisma";
+import { parseAiResponse } from "@/lib/ai-json";
 import { createPrompt } from "@/lib/prompt-wrapper";
 import { createRecord } from "@/lib/record-create";
 import { completePersistence } from "@/lib/persistence-complete";
@@ -58,7 +59,8 @@ export async function planCareerBreak(duration, reason, returnGoals) {
       { label: "returnGoals", value: returnGoals, maxLength: 1000 },
     ],
 
-    outputRules: createOutputRules(`Provide the output in the following JSON format ONLY:
+    outputRules: createOutputRules(
+  createJsonOutputRules(`{
 
 {
   "handoffPlan": ["Action 1 for leaving gracefully", "Action 2"],
@@ -66,13 +68,14 @@ export async function planCareerBreak(duration, reason, returnGoals) {
   "resumeExplanation": "A strong, unapologetic 1-2 sentence explanation to put on their resume.",
   "linkedinHeadline": "A suggested LinkedIn headline or summary addition.",
   "interviewScript": "How to answer 'Can you explain the gap in your resume?' in a future interview."
-}`),
+}`)),
   })
 );
 
   try {
     const aiResult = await runAiGeneration(prompt);
-    const parsedData = parseAIJson(aiResult.response.text());
+    const parsedData = parseAiResponse(aiResult);
+    
 
     const record = await createRecord(db.careerBreakPlan, {
   userId: user.id,
@@ -102,6 +105,3 @@ export async function getCareerBreakPlans() {
 
   return createHistoryResponse(records);
 }
-
-  return { success: true, data: records };
-
