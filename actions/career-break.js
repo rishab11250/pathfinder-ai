@@ -1,6 +1,7 @@
 "use server";
 import { getAuthenticatedUser } from "@/lib/authenticated-history";
 import { handleServerError } from "@/lib/error-handler";
+import { DEFAULT_PROMPT_CONFIG } from "@/lib/prompt-defaults";
 import { returnRecord } from "@/lib/record-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
 import { createJsonOutputRules } from "@/lib/output-rules";

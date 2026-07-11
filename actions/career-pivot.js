@@ -8,6 +8,7 @@ import { PROMPT_CONTEXTS } from "@/lib/prompt-contexts";
 import { executeAiLifecycle } from "@/lib/ai-lifecycle";
 import { createValidationResponse } from "@/lib/validation-response";
 import { runAiGeneration } from "@/lib/ai-pipeline";
+import { DEFAULT_PROMPT_CONFIG } from "@/lib/prompt-defaults";
 import { loadHistory } from "@/lib/history-loader";
 import { getUserHistory } from "@/lib/history-query";
 import { createSuccessResponse } from "@/lib/action-success";
