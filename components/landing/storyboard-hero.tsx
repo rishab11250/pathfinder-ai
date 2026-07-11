@@ -316,6 +316,7 @@ export function StoryboardHero({ autoPlay = true, interval = 5000 }: StoryboardH
               transition={{ delay: 0.4, duration: 0.6 }}
             >
               <Button
+                variant="default"
                 size="lg"
                 className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-lg px-8"
               >
@@ -352,6 +353,7 @@ export function StoryboardHero({ autoPlay = true, interval = 5000 }: StoryboardH
           <div className="flex gap-4">
             <Button
               variant="outline"
+              size="default"
               onClick={() => setCurrentFrame((prev) => (prev - 1 + storyboardFrames.length) % storyboardFrames.length)}
               disabled={currentFrame === 0}
               className={isLightBg ? '' : 'border-slate-600 text-white hover:bg-slate-700'}
@@ -360,6 +362,7 @@ export function StoryboardHero({ autoPlay = true, interval = 5000 }: StoryboardH
             </Button>
             <Button
               variant="outline"
+              size="default"
               onClick={() => setCurrentFrame((prev) => (prev + 1) % storyboardFrames.length)}
               className={isLightBg ? '' : 'border-slate-600 text-white hover:bg-slate-700'}
             >

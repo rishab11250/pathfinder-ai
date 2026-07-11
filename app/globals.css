@@ -198,6 +198,62 @@
   }
 }
 
+/* ── Liquid Glass Morphism ─────────────────────────────────── */
+.liquid-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.liquid-glass-strong {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  backdrop-filter: blur(40px) saturate(1.6);
+  -webkit-backdrop-filter: blur(40px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass-card {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 40%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(32px) saturate(1.5);
+  -webkit-backdrop-filter: blur(32px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    0 0 0 0.5px rgba(255, 255, 255, 0.05) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.35),
+    0 0 0 0.5px rgba(255, 255, 255, 0.08) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 @layer utilities {
   .glass {
     @apply bg-background/60 backdrop-blur-xl border border-border/10 shadow-glass;
@@ -414,6 +470,112 @@
   min-width: 44px !important;
   font-size: 1.125rem !important;
   padding: 0.75rem 1.5rem !important;
+}
+
+/* ── Cinematic Landing Page ─────────────────────────────────── */
+
+@keyframes blink-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  20% { transform: translate(-15%, 5%); }
+  30% { transform: translate(7%, -25%); }
+  40% { transform: translate(-5%, 25%); }
+  50% { transform: translate(-15%, 10%); }
+  60% { transform: translate(15%, 0%); }
+  70% { transform: translate(0%, 15%); }
+  80% { transform: translate(3%, 35%); }
+  90% { transform: translate(-10%, 10%); }
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0px) rotateZ(-8deg); }
+  33% { transform: translateY(-12px) rotateZ(-7deg); }
+  66% { transform: translateY(6px) rotateZ(-9deg); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-caret {
+  animation: blink-caret 0.8s step-end infinite;
+}
+
+.animate-grain {
+  animation: grain 8s steps(10) infinite;
+}
+
+.animate-hero-float {
+  animation: hero-float 8s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.noise-overlay {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+  animation: grain 8s steps(10) infinite;
+}
+
+.glass-pill {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  backdrop-filter: blur(40px) saturate(1.6);
+  -webkit-backdrop-filter: blur(40px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-pill:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.resume-card-glow {
+  box-shadow:
+    0 0 60px rgba(139, 92, 246, 0.2),
+    0 0 120px rgba(59, 130, 246, 0.08),
+    0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.resume-card-glow:hover {
+  box-shadow:
+    0 0 80px rgba(139, 92, 246, 0.3),
+    0 0 140px rgba(59, 130, 246, 0.12),
+    0 25px 70px rgba(0, 0, 0, 0.45);
+}
+
+.video-overlay {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 60%),
+    linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.95) 100%);
 }
 
 html {

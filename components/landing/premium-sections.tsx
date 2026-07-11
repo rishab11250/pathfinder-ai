@@ -285,7 +285,7 @@ export const PricingGrid: React.FC<PricingGridProps> = ({ className = '' }) => {
 
             <div className="relative z-10 space-y-8">
               {plan.highlighted && (
-                <Badge className="bg-primary text-primary-foreground px-4 py-1">
+                <Badge variant="default" className="bg-primary text-primary-foreground px-4 py-1">
                   Most Popular
                 </Badge>
               )}
@@ -322,6 +322,8 @@ export const PricingGrid: React.FC<PricingGridProps> = ({ className = '' }) => {
               </div>
 
               <Button
+                variant="default"
+                size="lg"
                 className={`w-full h-12 rounded-xl font-bold transition-all duration-300 ${
                   plan.highlighted
                     ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30'
