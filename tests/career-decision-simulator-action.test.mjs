@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   checkRateLimit: vi.fn(),
   formatResetTime: vi.fn(),
   revalidatePath: vi.fn(),
+  getUserHistory: vi.fn(),
 }));
 
 vi.mock("@clerk/nextjs/server", () => ({
@@ -38,7 +39,12 @@ vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
 }));
 
-import { simulateCareerDecision } from "../actions/career-decision-simulator.js";
+vi.mock("@/lib/history-query", () => ({
+  getUserHistory: mocks.getUserHistory,
+}));
+
+import { simulateCareerDecision, getCareerDecisionSimulations } from "../actions/career-decision-simulator.js";
+import { getUserHistory } from "@/lib/history-query";
 
 describe("simulateCareerDecision", () => {
   beforeEach(() => {
@@ -148,5 +154,123 @@ describe("simulateCareerDecision", () => {
     expect(result.errors.options).toBeDefined();
     expect(mocks.generateGeminiContent).not.toHaveBeenCalled();
     expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
+  });
+
+  it("fails when user is not found in database", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.findUniqueUser.mockResolvedValue(null);
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form[0]).toContain("User not found");
+    expect(mocks.checkRateLimit).not.toHaveBeenCalled();
+  });
+
+  it("handles AI generation failure gracefully", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+    
+    mocks.generateGeminiContent.mockRejectedValue(new Error("AI failed"));
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form).toBeDefined();
+    expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
+  });
+
+  it("handles database creation failure gracefully", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+    
+    const mockAIResponse = {
+      optionsAnalysis: [
+        {
+          option: "Option A",
+          pros: ["Good pay"],
+          cons: ["High stress"],
+          riskLevel: "Medium",
+          shortTermImpact: "Hard work",
+          longTermImpact: "Great experience",
+          skillsRequired: ["Resilience"]
+        }
+      ],
+      recommendedOption: "Option A",
+      reasoning: "Because of growth.",
+      nextStep: "Accept the offer.",
+      confidenceScore: 90
+    };
+
+    mocks.generateGeminiContent.mockResolvedValue({
+      response: {
+        text: () => JSON.stringify(mockAIResponse),
+      },
+    });
+    
+    mocks.careerDecisionSimulationCreate.mockRejectedValue(new Error("DB failed"));
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form).toBeDefined();
+  });
+});
+
+describe("getCareerDecisionSimulations", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("successfully retrieves user history", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+    
+    const mockRecords = [{ id: "sim-1" }, { id: "sim-2" }];
+    mocks.getUserHistory.mockResolvedValue(mockRecords);
+
+    const result = await getCareerDecisionSimulations();
+
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(mockRecords);
+    expect(mocks.getUserHistory).toHaveBeenCalled();
+  });
+
+  it("returns empty array when unauthorized", async () => {
+    mocks.auth.mockResolvedValue({ userId: null });
+
+    const result = await getCareerDecisionSimulations();
+
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual([]);
+    expect(mocks.getUserHistory).not.toHaveBeenCalled();
+  });
+
+  it("returns empty array when user is not found", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.findUniqueUser.mockResolvedValue(null);
+
+    const result = await getCareerDecisionSimulations();
+
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual([]);
+    expect(mocks.getUserHistory).not.toHaveBeenCalled();
   });
 });

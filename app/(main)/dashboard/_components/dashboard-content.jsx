@@ -11,7 +11,7 @@ import { SkillGap } from "./skill-gap";
 import { AiRecommendations } from "./ai-recommendations";
 import { QuickActions } from "./quick-actions";
 import { cn } from "@/lib/utils";
-import { Calendar } from "lucide-react";
+import { Calendar, Split } from "lucide-react";
 import Link from "next/link";
 
 const sectionDefs = [
@@ -191,7 +191,7 @@ export function DashboardContent({
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2.5 bg-emerald-500/20 text-emerald-500 rounded-xl">
                 <Link href="/career-decision-simulator" className="block">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-split"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.828L3 3"/><path d="m15 9 6-6"/></svg>
+                  <Split className="w-5 h-5" />
                 </Link>
               </div>
               <h4 className="font-bold text-foreground text-base">

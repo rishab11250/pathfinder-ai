@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
 import { careerDecisionSchema } from "@/lib/schemas/forms";
+import { careerDecisionOutputSchema } from "@/lib/schemas/outputs";
 import { validateInput } from "@/lib/validate";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 import { getAuthenticatedUserId } from "@/lib/auth-userid";
@@ -76,11 +77,17 @@ export async function simulateCareerDecision(input) {
     const aiResult = await generateGeminiContent(prompt);
     const parsedData = parseAIJson(aiResult.response.text());
 
+    const outputValidation = careerDecisionOutputSchema.safeParse(parsedData);
+    if (!outputValidation.success) {
+      console.error("AI output validation failed", outputValidation.error);
+      return createErrorResponse("Failed to parse analysis from AI. Please try again.");
+    }
+
     const record = await createRecord(db.careerDecisionSimulation, {
       userId: user.id,
       question,
       options,
-      analysis: parsedData,
+      analysis: outputValidation.data,
     });
 
     revalidatePath("/career-decision-simulator");

@@ -24,7 +24,10 @@ export default function CareerDecisionSimulatorPage() {
   const [history, setHistory] = useState([]);
   const [activeSimulation, setActiveSimulation] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [optionsList, setOptionsList] = useState(["", ""]);
+  const [optionsList, setOptionsList] = useState([
+    { id: "init-1", value: "" },
+    { id: "init-2", value: "" }
+  ]);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
     resolver: zodResolver(careerDecisionSchema),
@@ -52,9 +55,9 @@ export default function CareerDecisionSimulatorPage() {
       toast.error("Maximum 5 options allowed.");
       return;
     }
-    const newList = [...optionsList, ""];
+    const newList = [...optionsList, { id: Date.now().toString() + Math.random(), value: "" }];
     setOptionsList(newList);
-    setValue("options", newList);
+    setValue("options", newList.map(o => o.value));
   };
 
   const removeOption = (index) => {
@@ -64,14 +67,14 @@ export default function CareerDecisionSimulatorPage() {
     }
     const newList = optionsList.filter((_, i) => i !== index);
     setOptionsList(newList);
-    setValue("options", newList);
+    setValue("options", newList.map(o => o.value));
   };
 
   const handleOptionChange = (index, value) => {
     const newList = [...optionsList];
-    newList[index] = value;
+    newList[index] = { ...newList[index], value };
     setOptionsList(newList);
-    setValue("options", newList);
+    setValue("options", newList.map(o => o.value));
   };
 
   const onSubmit = async (data) => {
@@ -84,19 +87,27 @@ export default function CareerDecisionSimulatorPage() {
     setLoading(true);
     toast.info("Analyzing career options...");
     
-    const res = await simulateCareerDecision(data);
-    
-    if (res?.success && res.data) {
-      toast.success("Analysis complete!");
-      setHistory(prev => [res.data, ...prev]);
-      setActiveSimulation(res.data);
-      reset();
-      setOptionsList(["", ""]);
-    } else {
-      toast.error(res?.errors?._form?.[0] || "Failed to generate simulation. Please try again.");
+    try {
+      const res = await simulateCareerDecision(data);
+      
+      if (res?.success && res.data) {
+        toast.success("Analysis complete!");
+        setHistory(prev => [res.data, ...prev]);
+        setActiveSimulation(res.data);
+        reset();
+        setOptionsList([
+          { id: Date.now().toString() + Math.random(), value: "" },
+          { id: Date.now().toString() + Math.random(), value: "" }
+        ]);
+      } else {
+        toast.error(res?.errors?._form?.[0] || "Failed to generate simulation. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to generate simulation. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const getRiskColor = (risk) => {
@@ -146,14 +157,14 @@ export default function CareerDecisionSimulatorPage() {
                 <AnimatePresence>
                   {optionsList.map((opt, idx) => (
                     <motion.div
-                      key={idx}
+                      key={opt.id}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       className="flex items-center gap-2"
                     >
                       <Input
-                        value={opt}
+                        value={opt.value}
                         onChange={(e) => handleOptionChange(idx, e.target.value)}
                         placeholder={`Option ${idx + 1}`}
                         className="bg-background/50 focus:bg-background transition-colors"
@@ -236,6 +247,14 @@ export default function CareerDecisionSimulatorPage() {
                 Enter your toughest career dilemma and options on the left to see the AI analysis here.
               </p>
             </div>
+          ) : !activeSimulation && loading ? (
+            <div className="h-full min-h-[400px] flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-3xl text-center">
+              <Loader2 className="w-12 h-12 text-primary/50 animate-spin mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Simulating Scenarios...</h3>
+              <p className="text-muted-foreground max-w-sm">
+                Evaluating the pros, cons, and potential impacts of your career choices.
+              </p>
+            </div>
           ) : (
             <AnimatePresence mode="wait">
               {activeSimulation && (
@@ -311,11 +330,11 @@ export default function CareerDecisionSimulatorPage() {
                                   <Plus className="w-3.5 h-3.5" /> Pros
                                 </h5>
                                 <ul className="space-y-1.5">
-                                  {opt.pros.map((pro, i) => (
+                                  {opt.pros && opt.pros.length > 0 ? opt.pros.map((pro, i) => (
                                     <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                                       <span className="text-green-500 mt-0.5">•</span> {pro}
                                     </li>
-                                  ))}
+                                  )) : <li className="text-sm text-muted-foreground">None identified.</li>}
                                 </ul>
                               </div>
                               <div>
@@ -323,11 +342,11 @@ export default function CareerDecisionSimulatorPage() {
                                   <Trash2 className="w-3.5 h-3.5" /> Cons
                                 </h5>
                                 <ul className="space-y-1.5">
-                                  {opt.cons.map((con, i) => (
+                                  {opt.cons && opt.cons.length > 0 ? opt.cons.map((con, i) => (
                                     <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                                       <span className="text-red-500 mt-0.5">•</span> {con}
                                     </li>
-                                  ))}
+                                  )) : <li className="text-sm text-muted-foreground">None identified.</li>}
                                 </ul>
                               </div>
                             </div>
