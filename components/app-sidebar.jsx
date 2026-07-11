@@ -74,7 +74,8 @@ import {
   Activity,
   RocketIcon,
   Crown,
-  PenLine
+  PenLine,
+  Split
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -134,6 +135,7 @@ const MENU_GROUPS = [
     items: [
       { href: "/promotion-negotiator", label: "Promotion Coach", icon: <TrendingUp className="h-4 w-4 text-purple-500" />, shortcut: "" },
       { href: "/career-pivot", label: "Career Pivot", icon: <ArrowRightLeft className="h-4 w-4 text-orange-500" />, shortcut: "" },
+      { href: "/career-decision-simulator", label: "Decision Simulator", icon: <Split className="h-4 w-4 text-emerald-500" />, shortcut: "" },
       { href: "/onboarding-plan", label: "30-60-90 Plan", icon: <CalendarClock className="h-4 w-4 text-indigo-500" />, shortcut: "" },
       { href: "/freelance-proposal", label: "Freelance Proposals", icon: <FileSignature className="h-4 w-4 text-teal-500" />, shortcut: "" },
       { href: "/explore", label: "Explore Careers", icon: <Compass className="h-4 w-4 text-cyan-500" />, shortcut: "" },

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/prisma";
 import { isIndustryInsightStale } from "@/lib/industry-insights";
 import { getIndustryInsights } from "@/actions/dashboard";
+import { getUserHistory } from "@/lib/history-query";
 import { DashboardContent } from "./_components/dashboard-content";
 import { EmptyState } from "./_components/empty-state";
 
@@ -63,6 +64,11 @@ export default async function DashboardPage() {
   if (!insight) return <EmptyState userName={user.name || user.email} />;
 
   const upcomingInterviews = await getUpcomingInterviews(user.id);
+  const recentDecisions = await getUserHistory(
+    db.careerDecisionSimulation,
+    user.id,
+    { createdAt: "desc" }
+  );
 
   return (
     <DashboardContent
@@ -75,6 +81,7 @@ export default async function DashboardPage() {
       skills={user.skills}
       insight={insight}
       upcomingInterviews={upcomingInterviews}
+      recentDecisions={recentDecisions.slice(0, 3)}
     />
   );
 }
