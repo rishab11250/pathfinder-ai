@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   isPublicRoute,
   isAuthedAppRoute,
@@ -7,8 +7,8 @@ import {
 } from "../lib/auth/routes.js";
 
 // Helper to create mock NextRequest-like objects
-function createMockRequest(path) {
-  const url = `http://localhost:3000${path}`;
+function createMockRequest(path, hostname = "localhost") {
+  const url = `http://${hostname}:3000${path}`;
   return {
     url,
     nextUrl: new URL(url),
@@ -16,6 +16,11 @@ function createMockRequest(path) {
 }
 
 describe("Auth Route Matchers", () => {
+  beforeEach(() => {
+    // Reset NODE_ENV to a safe default before each test
+    process.env.NODE_ENV = "test";
+  });
+
   describe("isPublicRoute", () => {
     it("matches public routes", () => {
       expect(isPublicRoute(createMockRequest("/"))).toBe(true);
@@ -85,6 +90,11 @@ describe("getAuthDecision", () => {
   const authed = async () => ({ userId: "user_123" });
   const unauthed = async () => ({ userId: null });
 
+  beforeEach(() => {
+    // Reset NODE_ENV to a safe default before each test
+    process.env.NODE_ENV = "test";
+  });
+
   it("returns public action for public routes regardless of authentication", async () => {
     const req1 = createMockRequest("/");
     const res1 = await getAuthDecision(req1, unauthed);
@@ -151,5 +161,64 @@ describe("getAuthDecision", () => {
       expect(res.signInUrl).toContain("/sign-in");
       expect(res.signInUrl).toContain(`redirect_url=${encodeURIComponent(route)}`);
     }
+  });
+
+  describe("Video-Coach Development Bypass", () => {
+    it("allows bypass for video-coach route in development on localhost", async () => {
+      process.env.NODE_ENV = "development";
+      const req = createMockRequest("/interview/video-coach", "localhost");
+      const res = await getAuthDecision(req, unauthed);
+      expect(res.action).toBe("next");
+    });
+
+    it("allows bypass for video-coach route in development on 127.0.0.1", async () => {
+      process.env.NODE_ENV = "development";
+      const req = createMockRequest("/interview/video-coach", "127.0.0.1");
+      const res = await getAuthDecision(req, unauthed);
+      expect(res.action).toBe("next");
+    });
+
+    it("allows bypass for video-coach subroutes in development", async () => {
+      process.env.NODE_ENV = "development";
+      const req = createMockRequest("/interview/video-coach/session/123", "localhost");
+      const res = await getAuthDecision(req, unauthed);
+      expect(res.action).toBe("next");
+    });
+
+    it("throws error for video-coach route in production", async () => {
+      process.env.NODE_ENV = "production";
+      const req = createMockRequest("/interview/video-coach", "localhost");
+      
+      await expect(getAuthDecision(req, unauthed)).rejects.toThrow(
+        "NOT allowed in production"
+      );
+    });
+
+    it("throws error for video-coach route in non-development mode", async () => {
+      process.env.NODE_ENV = "staging";
+      const req = createMockRequest("/interview/video-coach", "localhost");
+      
+      await expect(getAuthDecision(req, unauthed)).rejects.toThrow(
+        "only allowed in development mode"
+      );
+    });
+
+    it("throws error for video-coach route on non-localhost in development", async () => {
+      process.env.NODE_ENV = "development";
+      const req = createMockRequest("/interview/video-coach", "example.com");
+      
+      await expect(getAuthDecision(req, unauthed)).rejects.toThrow(
+        "only allowed on localhost"
+      );
+    });
+
+    it("throws error for video-coach route on deployed environment", async () => {
+      process.env.NODE_ENV = "development";
+      const req = createMockRequest("/interview/video-coach", "myapp.vercel.app");
+      
+      await expect(getAuthDecision(req, unauthed)).rejects.toThrow(
+        "only allowed on localhost"
+      );
+    });
   });
 });
