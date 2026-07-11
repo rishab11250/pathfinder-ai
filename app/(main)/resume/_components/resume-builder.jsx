@@ -158,7 +158,7 @@ const generatePDF = async () => {
         ? `${user.fullName.replace(/\s+/g, "_")}_Resume.pdf`
         : "resume.pdf",
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, ignoreElements: (el) => el.hasAttribute("data-debug") },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["avoid-all", "css", "legacy"] }
     };
