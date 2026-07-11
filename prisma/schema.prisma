@@ -102,6 +102,8 @@ model User {
   exportRecords       ExportRecord[]
   auditLogs           AuditLog[]
   resumeMatchAnalyses ResumeMatchAnalysis[]
+  careerDecisionSimulations CareerDecisionSimulation[]
+  mockInterviewSessions MockInterviewSession[]
 }
 
 model Assessment {
@@ -836,6 +838,18 @@ model MockInterviewSession {
   overallScore       Float
   feedback           String?  @db.Text
   createdAt          DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CareerDecisionSimulation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question  String   @db.Text
+  options   Json
+  analysis  Json
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }

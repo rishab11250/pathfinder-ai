@@ -106,6 +106,7 @@ export function DashboardContent({
   skills,
   insight,
   upcomingInterviews = [],
+  recentDecisions = [],
 }) {
   const scores = useMemo(() => computeScores(insight), [insight]);
 
@@ -178,6 +179,34 @@ export function DashboardContent({
             >
               View Job Tracker
             </Link>
+          </motion.div>
+        )}
+
+        {recentDecisions && recentDecisions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-5 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 shadow-lg backdrop-blur-md flex flex-col mb-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 bg-emerald-500/20 text-emerald-500 rounded-xl">
+                <Link href="/career-decision-simulator" className="block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-split"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.828L3 3"/><path d="m15 9 6-6"/></svg>
+                </Link>
+              </div>
+              <h4 className="font-bold text-foreground text-base">
+                Recent Career Decisions
+              </h4>
+            </div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {recentDecisions.map((decision) => (
+                <Link key={decision.id} href="/career-decision-simulator" className="block bg-background/60 hover:bg-background/80 border border-emerald-500/20 rounded-2xl p-4 transition-colors shadow-sm">
+                  <div className="text-sm font-semibold truncate mb-1" title={decision.question}>{decision.question}</div>
+                  <div className="text-xs text-muted-foreground truncate mb-2">Recommended: <span className="font-medium text-foreground">{decision.analysis?.recommendedOption}</span></div>
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-emerald-500">View Analysis &rarr;</div>
+                </Link>
+              ))}
+            </div>
           </motion.div>
         )}
 

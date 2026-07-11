@@ -1,0 +1,152 @@
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
+  findUniqueUser: vi.fn(),
+  careerDecisionSimulationCreate: vi.fn(),
+  generateGeminiContent: vi.fn(),
+  checkRateLimit: vi.fn(),
+  formatResetTime: vi.fn(),
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: mocks.auth,
+}));
+
+vi.mock("@/lib/prisma", () => ({
+  db: {
+    user: {
+      findUnique: mocks.findUniqueUser,
+    },
+    careerDecisionSimulation: {
+      create: mocks.careerDecisionSimulationCreate,
+    },
+  },
+}));
+
+vi.mock("@/lib/gemini", () => ({
+  generateGeminiContent: mocks.generateGeminiContent,
+}));
+
+vi.mock("@/lib/rate-limit-actions", () => ({
+  checkRateLimit: mocks.checkRateLimit,
+  formatResetTime: mocks.formatResetTime,
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: mocks.revalidatePath,
+}));
+
+import { simulateCareerDecision } from "../actions/career-decision-simulator.js";
+
+describe("simulateCareerDecision", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.formatResetTime.mockReturnValue("60 minutes");
+  });
+
+  it("successfully generates simulation when within rate limits", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+    
+    const mockAIResponse = {
+      optionsAnalysis: [
+        {
+          option: "Option A",
+          pros: ["Good pay"],
+          cons: ["High stress"],
+          riskLevel: "Medium",
+          shortTermImpact: "Hard work",
+          longTermImpact: "Great experience",
+          skillsRequired: ["Resilience"]
+        },
+        {
+          option: "Option B",
+          pros: ["Low stress"],
+          cons: ["Lower pay"],
+          riskLevel: "Low",
+          shortTermImpact: "Easy transition",
+          longTermImpact: "Slower growth",
+          skillsRequired: []
+        }
+      ],
+      recommendedOption: "Option A",
+      reasoning: "Because of growth.",
+      nextStep: "Accept the offer.",
+      confidenceScore: 90
+    };
+
+    mocks.generateGeminiContent.mockResolvedValue({
+      response: {
+        text: () => JSON.stringify(mockAIResponse),
+      },
+    });
+    
+    mocks.careerDecisionSimulationCreate.mockResolvedValue({ id: "sim-1" });
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(true);
+    expect(mocks.checkRateLimit).toHaveBeenCalledWith("user-1", "careerDecisionSimulator");
+    expect(mocks.careerDecisionSimulationCreate).toHaveBeenCalled();
+    expect(mocks.careerDecisionSimulationCreate.mock.calls[0][0].data.analysis).toEqual(mockAIResponse);
+  });
+
+  it("fails when rate limit is exceeded", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: false, resetAt: new Date() });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form[0]).toContain("Rate limit exceeded");
+    expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
+  });
+
+  it("fails when unauthorized", async () => {
+    mocks.auth.mockResolvedValue({ userId: null });
+
+    const input = {
+      question: "Should I take Option A or Option B?",
+      options: ["Option A", "Option B"]
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors._form[0]).toContain("Unauthorized");
+    expect(mocks.checkRateLimit).not.toHaveBeenCalled();
+    expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
+  });
+
+  it("fails validation if less than 2 options provided", async () => {
+    mocks.auth.mockResolvedValue({ userId: "user-1" });
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.findUniqueUser.mockResolvedValue({ id: "db-user-1", clerkUserId: "user-1" });
+
+    const input = {
+      question: "Should I take Option A?",
+      options: ["Option A"] // Only 1 option
+    };
+
+    const result = await simulateCareerDecision(input);
+
+    expect(result.success).toBe(false);
+    expect(result.errors.options).toBeDefined();
+    expect(mocks.generateGeminiContent).not.toHaveBeenCalled();
+    expect(mocks.careerDecisionSimulationCreate).not.toHaveBeenCalled();
+  });
+});
