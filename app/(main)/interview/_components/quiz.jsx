@@ -196,8 +196,9 @@ export default function Quiz() {
     );
   }
 
-  const question = questions[currentQuestion];
+  const question = questions?.[currentQuestion];
   const isFallback = quizData.isFallback;
+  if (!question) return <div className="text-center p-8 text-muted-foreground">Question not available</div>;
 
   return (
     <Card className="mx-2">
