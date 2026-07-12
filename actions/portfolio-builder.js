@@ -56,7 +56,9 @@ The JSON MUST match this exact schema:
     {
       "name": "Project Name",
       "description": "What the project is and technologies used",
-      "link": "URL if available, otherwise empty string"
+      "link": "URL if available, otherwise empty string",
+      "techStack": ["Skill 1", "Skill 2"],
+      "image": ""
     }
   ],
   "skills": ["Skill 1", "Skill 2", "Skill 3"]
