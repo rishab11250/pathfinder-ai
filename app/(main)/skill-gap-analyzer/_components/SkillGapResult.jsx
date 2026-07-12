@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CheckCircle2, AlertTriangle, Lightbulb, Map, Target, CalendarDays, BrainCircuit, Copy, Check,} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export default function SkillGapResult({ data }) {
   if (!data) return null;
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
   const {
     matchPercentage,
     matchedSkills,
@@ -53,7 +60,7 @@ const handleCopyRoadmap = async () => {
     await navigator.clipboard.writeText(text);
 
     setCopied(true);
-    window.setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       setCopied(false);
     }, 2000);
   } catch (error) {
