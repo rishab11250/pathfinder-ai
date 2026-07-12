@@ -175,7 +175,7 @@ const generatePDF = async () => {
 
   const onSubmit = async (data) => {
     try {
-     const formattedContent = previewContent
+     const formattedContent = (previewContent || "")
   .replace(/\n\s*\n/g, "\n\n")
   .trim();
 
