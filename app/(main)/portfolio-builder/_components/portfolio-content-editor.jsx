@@ -103,16 +103,18 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
         <h3 className="font-bold text-lg border-b pb-2">Hero Section</h3>
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase">Headline</label>
+            <label htmlFor="hero-headline" className="text-xs font-semibold text-muted-foreground uppercase">Headline</label>
             <Input 
+              id="hero-headline"
               value={content.hero?.headline || ""} 
               onChange={e => updateHero("headline", e.target.value)} 
               placeholder="e.g. Full Stack Developer" 
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase">Subheadline</label>
+            <label htmlFor="hero-subheadline" className="text-xs font-semibold text-muted-foreground uppercase">Subheadline</label>
             <Textarea 
+              id="hero-subheadline"
               value={content.hero?.subheadline || ""} 
               onChange={e => updateHero("subheadline", e.target.value)} 
               placeholder="A brief summary about yourself" 
@@ -126,8 +128,9 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
       <div className="space-y-4">
         <h3 className="font-bold text-lg border-b pb-2">About Section</h3>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-muted-foreground uppercase">Content</label>
+          <label htmlFor="about-content" className="text-xs font-semibold text-muted-foreground uppercase">Content</label>
           <Textarea 
+            id="about-content"
             value={content.about?.content || ""} 
             onChange={e => updateAbout(e.target.value)} 
             placeholder="Detailed professional bio" 
@@ -150,6 +153,7 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
             <div key={i} className="p-4 border border-border rounded-xl space-y-3 bg-muted/20 relative group">
               <button 
                 onClick={() => removeExperience(i)}
+                aria-label={`Remove experience ${i + 1}`}
                 className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-red-500 rounded-md hover:bg-background transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
@@ -157,20 +161,20 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
               
               <div className="grid grid-cols-2 gap-3 pr-8">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Role</label>
-                  <Input value={exp.role || ""} onChange={e => updateExperience(i, "role", e.target.value)} placeholder="e.g. Frontend Engineer" />
+                  <label htmlFor={`exp-role-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Role</label>
+                  <Input id={`exp-role-${i}`} value={exp.role || ""} onChange={e => updateExperience(i, "role", e.target.value)} placeholder="e.g. Frontend Engineer" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Company</label>
-                  <Input value={exp.company || ""} onChange={e => updateExperience(i, "company", e.target.value)} placeholder="Company Name" />
+                  <label htmlFor={`exp-company-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Company</label>
+                  <Input id={`exp-company-${i}`} value={exp.company || ""} onChange={e => updateExperience(i, "company", e.target.value)} placeholder="Company Name" />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Duration</label>
-                  <Input value={exp.duration || ""} onChange={e => updateExperience(i, "duration", e.target.value)} placeholder="e.g. Jan 2020 - Present" />
+                  <label htmlFor={`exp-duration-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Duration</label>
+                  <Input id={`exp-duration-${i}`} value={exp.duration || ""} onChange={e => updateExperience(i, "duration", e.target.value)} placeholder="e.g. Jan 2020 - Present" />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
-                  <Textarea value={exp.description || ""} onChange={e => updateExperience(i, "description", e.target.value)} placeholder="What did you do?" />
+                  <label htmlFor={`exp-desc-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
+                  <Textarea id={`exp-desc-${i}`} value={exp.description || ""} onChange={e => updateExperience(i, "description", e.target.value)} placeholder="What did you do?" />
                 </div>
               </div>
             </div>
@@ -195,6 +199,7 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
             <div key={i} className="p-4 border border-border rounded-xl space-y-3 bg-muted/20 relative group">
               <button 
                 onClick={() => removeProject(i)}
+                aria-label={`Remove project ${i + 1}`}
                 className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-red-500 rounded-md hover:bg-background transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
@@ -202,24 +207,24 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
               
               <div className="grid grid-cols-2 gap-3 pr-8">
                 <div className="space-y-1 col-span-2 md:col-span-1">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Name</label>
-                  <Input value={proj.name || ""} onChange={e => updateProject(i, "name", e.target.value)} placeholder="Project Name" />
+                  <label htmlFor={`proj-name-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Name</label>
+                  <Input id={`proj-name-${i}`} value={proj.name || ""} onChange={e => updateProject(i, "name", e.target.value)} placeholder="Project Name" />
                 </div>
                 <div className="space-y-1 col-span-2 md:col-span-1">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Link URL</label>
-                  <Input value={proj.link || ""} onChange={e => updateProject(i, "link", e.target.value)} placeholder="https://..." />
+                  <label htmlFor={`proj-link-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Link URL</label>
+                  <Input id={`proj-link-${i}`} value={proj.link || ""} onChange={e => updateProject(i, "link", e.target.value)} placeholder="https://..." />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Image URL (Optional)</label>
-                  <Input value={proj.image || ""} onChange={e => updateProject(i, "image", e.target.value)} placeholder="https://.../image.png" />
+                  <label htmlFor={`proj-img-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Image URL (Optional)</label>
+                  <Input id={`proj-img-${i}`} value={proj.image || ""} onChange={e => updateProject(i, "image", e.target.value)} placeholder="https://.../image.png" />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Tech Stack (comma separated)</label>
-                  <Input value={(proj.techStack || []).join(', ')} onChange={e => updateProject(i, "techStack", e.target.value)} placeholder="React, Node.js, Tailwind" />
+                  <label htmlFor={`proj-tech-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Tech Stack (comma separated)</label>
+                  <Input id={`proj-tech-${i}`} value={(proj.techStack || []).join(', ')} onChange={e => updateProject(i, "techStack", e.target.value)} placeholder="React, Node.js, Tailwind" />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
-                  <Textarea value={proj.description || ""} onChange={e => updateProject(i, "description", e.target.value)} placeholder="About the project..." />
+                  <label htmlFor={`proj-desc-${i}`} className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
+                  <Textarea id={`proj-desc-${i}`} value={proj.description || ""} onChange={e => updateProject(i, "description", e.target.value)} placeholder="About the project..." />
                 </div>
               </div>
             </div>
@@ -234,8 +239,9 @@ export default function PortfolioContentEditor({ portfolio, onUpdate }) {
       <div className="space-y-4">
         <h3 className="font-bold text-lg border-b pb-2">Skills</h3>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-muted-foreground uppercase">Comma Separated Skills</label>
+          <label htmlFor="skills-content" className="text-xs font-semibold text-muted-foreground uppercase">Comma Separated Skills</label>
           <Textarea 
+            id="skills-content"
             value={(content.skills || []).join(', ')} 
             onChange={e => updateSkills(e.target.value)} 
             placeholder="React, Next.js, JavaScript..." 

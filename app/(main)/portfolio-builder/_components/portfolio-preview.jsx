@@ -76,7 +76,7 @@ export default function PortfolioPreview({ data, theme, user }) {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {data.projects.map((proj, i) => (
-                  <div key={i} className="group flex flex-col bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-green-500/50 transition-colors overflow-hidden">
+                  <div key={i} className={`group flex flex-col bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-green-500/50 transition-colors overflow-hidden ${!proj.image ? 'md:col-span-2' : ''}`}>
                     {proj.image && (
                       <div className="w-full h-48 bg-slate-800 overflow-hidden">
                         <img src={proj.image} alt={proj.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -86,7 +86,7 @@ export default function PortfolioPreview({ data, theme, user }) {
                       <h3 className="text-xl font-bold flex items-center justify-between">
                         {proj.name}
                         {proj.link && (
-                          <a href={proj.link} target="_blank" rel="noreferrer" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <a href={proj.link} target="_blank" rel="noreferrer" aria-label={`Visit project ${proj.name}`} className="opacity-70 hover:opacity-100 transition-opacity">
                             <ExternalLink className="h-5 w-5 text-green-400" />
                           </a>
                         )}
@@ -178,12 +178,12 @@ export default function PortfolioPreview({ data, theme, user }) {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-zinc-400 font-sans border-b border-zinc-100 pb-4">Projects</h2>
             <div className="space-y-16">
               {data.projects.map((proj, i) => (
-                <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div key={i} className={`grid grid-cols-1 gap-8 ${proj.image ? 'md:grid-cols-2' : ''}`}>
                   <div className="space-y-4">
                     <h3 className="text-xl font-medium text-zinc-800 flex items-center gap-2">
                       {proj.name}
                       {proj.link && (
-                        <a href={proj.link} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-zinc-900 transition-colors">
+                        <a href={proj.link} target="_blank" rel="noreferrer" aria-label={`Visit project ${proj.name}`} className="text-zinc-400 hover:text-zinc-900 transition-colors">
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       )}

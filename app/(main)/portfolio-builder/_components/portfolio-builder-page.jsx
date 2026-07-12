@@ -23,7 +23,7 @@ export default function PortfolioBuilderPage({ initialPortfolio, user }) {
   const handleGenerate = async () => {
     setLoading(true);
     toast.loading("Generating your AI portfolio...", { id: "generate" });
-    const res = await generatePortfolio();
+    const res = await generatePortfolio(portfolio?.slug);
     if (res.success) {
       toast.success("Portfolio generated successfully!", { id: "generate" });
       setPortfolio(res.data);
@@ -93,7 +93,7 @@ export default function PortfolioBuilderPage({ initialPortfolio, user }) {
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="content" className="mt-0">
+            <TabsContent value="content" className="mt-0" forceMount>
               <PortfolioContentEditor 
                 portfolio={portfolio} 
                 onUpdate={(updatedData) => setPortfolio(updatedData)} 
