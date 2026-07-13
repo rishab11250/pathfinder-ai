@@ -27,7 +27,7 @@ const nextConfig = {
   serverExternalPackages: ["@prisma/client"],
 
   experimental: {
-    // optimizePackageImports: ["lucide-react", "framer-motion", "@clerk/nextjs"],
+    lightningcss: true,
   },
   output: "standalone",
 };
