@@ -4,6 +4,7 @@ import { generateJsonExport } from "@/lib/export/json-export";
 import { generateMarkdownExport } from "@/lib/export/markdown-export";
 import { getOwnedConversation } from "@/lib/conversation/getConversation";
 import { validateId } from "@/lib/validate";
+import { sanitizeInput } from "@/lib/sanitize";
 
 
 /**
@@ -23,14 +24,15 @@ export async function GET(request, context) {
   if (!idValidation.success) {
     return respondError(ERROR_CODES.VALIDATION_ERROR, "Conversation ID is required", idValidation.errors);
   }
-  const format =
+  const rawFormat =
     new URL(request.url).searchParams.get("format") || "json";
-    if (!["json", "md"].includes(format)) {
-        return respondError(
-            ERROR_CODES.VALIDATION_ERROR,
-            "Supported formats are json and md"
-        );
-    }
+  const format = sanitizeInput(rawFormat).trim();
+  if (!["json", "md"].includes(format)) {
+    return respondError(
+      ERROR_CODES.VALIDATION_ERROR,
+      "Supported formats are json and md"
+    );
+  }
 
   try {
     const result = await getOwnedConversation(idValidation.data);

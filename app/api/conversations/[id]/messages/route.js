@@ -3,6 +3,7 @@ import { db } from "@/lib/prisma";
 import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 import { messageCreateSchema, messageUpdateSchema } from "@/lib/schemas/forms";
 import { validateId } from "@/lib/validate";
+import { sanitizeInput } from "@/lib/sanitize";
 
 export async function POST(request, context) {
   const params = await context.params;
@@ -92,7 +93,7 @@ export async function PATCH(request, context) {
     return respondError(ERROR_CODES.VALIDATION_ERROR, "Conversation ID is required", idValidation.errors);
   }
 
-  const messageId = request.nextUrl.searchParams.get("messageId");
+  const messageId = sanitizeInput(request.nextUrl.searchParams.get("messageId") || "");
   const messageIdValidation = validateId(messageId, "messageId");
 
   if (!messageIdValidation.success) {
@@ -174,7 +175,7 @@ export async function DELETE(request, context) {
     return respondError(ERROR_CODES.VALIDATION_ERROR, "Conversation ID is required", idValidation.errors);
   }
 
-  const messageId = request.nextUrl.searchParams.get("messageId");
+  const messageId = sanitizeInput(request.nextUrl.searchParams.get("messageId") || "");
   const messageIdValidation = validateId(messageId, "messageId");
 
   if (!messageIdValidation.success) {
