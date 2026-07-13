@@ -66,6 +66,7 @@ export default function Quiz() {
 
   useEffect(() => {
     if (questions && questions.length > 0) {
+      setCurrentQuestion(0);
       setAnswers(new Array(questions.length).fill(null));
     }
   }, [quizData, questions]);
@@ -197,8 +198,8 @@ export default function Quiz() {
   }
 
   const question = questions?.[currentQuestion];
+  if (questions.length === 0 || !question) return <div className="text-center p-8 text-muted-foreground">Question not available</div>;
   const isFallback = quizData.isFallback;
-  if (!question) return <div className="text-center p-8 text-muted-foreground">Question not available</div>;
 
   return (
     <Card className="mx-2">

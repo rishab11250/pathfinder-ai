@@ -18,5 +18,5 @@ return (
 const copyRoadmapToClipboard = (roadmap) => {
   const roadmapText = roadmap.map((week, index) => `Week ${index + 1}:
 ${week.tasks.join('\n')}`).join('\n\n');
-  navigator.clipboard.writeText(roadmapText);
+  navigator.clipboard.writeText(roadmapText).catch(() => {});
 };
