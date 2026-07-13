@@ -156,7 +156,7 @@ export default function QuizList({ assessments }) {
 
                     {assessment.improvementTip && (
                       <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                        <Lightbulb className="h-4 w-4 inline mr-1" aria-hidden="true" />
+                        <Lightbulb className="h-4 w-4 inline-block mr-1" aria-hidden="true" />
                         {assessment.improvementTip}
                       </p>
                     )}
