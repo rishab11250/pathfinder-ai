@@ -3,25 +3,59 @@ import { NextResponse } from "next/server";
 import { getAuthDecision } from "./lib/auth/routes";
 import { validateDevBypass, validateVideoCoachBypass } from "./lib/auth/dev-bypass";
 
+function addSecureHeaders(response) {
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.pathfinder.ai https://*.clerk.com https://challenges.cloudflare.com https://accounts.google.com https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' https://clerk.pathfinder.ai https://*.clerk.com https://challenges.cloudflare.com https://*.googleapis.com https://analytics.google.com https://www.google-analytics.com https://o4508291182551040.ingest.us.sentry.io https://sentry.io https://api.anthropic.com https://api-inference.huggingface.co https://inngest.com https://*.inngest.com wss://ws-us2.gitpod.io wss://*.gitpod.io",
+    "frame-src 'self' https://challenges.cloudflare.com https://accounts.google.com https://www.google.com",
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+
+  response.headers.set("Content-Security-Policy", csp);
+
+  const setCookie = response.headers.get("Set-Cookie");
+  if (setCookie && process.env.NODE_ENV === "production") {
+    response.headers.set(
+      "Set-Cookie",
+      setCookie.replace(/;\s*Secure(?=;|$)/gi, "").replace(/;\s*$/g, "") + "; Secure"
+    );
+  }
+
+  return response;
+}
+
 const clerkHandler = clerkMiddleware(async (auth, req) => {
   // Route protection rules (public routes, protected routes) are defined
   // and evaluated in lib/auth/routes.js using createRouteMatcher.
   const decision = await getAuthDecision(req, auth);
 
+  let response;
   switch (decision.action) {
     case "public":
     case "next":
-      return NextResponse.next();
+      response = NextResponse.next();
+      break;
     case "redirect":
-      return NextResponse.redirect(new URL(decision.signInUrl));
+      response = NextResponse.redirect(new URL(decision.signInUrl));
+      break;
     case "deny":
-      return NextResponse.json(
+      response = NextResponse.json(
         { error: "Unauthorized" },
         { status: decision.status || 401 }
       );
+      break;
     default:
-      return NextResponse.next();
+      response = NextResponse.next();
   }
+
+  return addSecureHeaders(response);
 });
 
 export default function middleware(req, event) {
@@ -47,7 +81,7 @@ export default function middleware(req, event) {
     });
 
     if (validation.allowed) {
-      return NextResponse.next();
+      return addSecureHeaders(NextResponse.next());
     }
 
     // If validation failed with an error, throw it to fail fast
@@ -72,7 +106,7 @@ export default function middleware(req, event) {
     });
 
     if (validation.allowed) {
-      return NextResponse.next();
+      return addSecureHeaders(NextResponse.next());
     }
 
     // If validation failed with an error, throw it to fail fast
