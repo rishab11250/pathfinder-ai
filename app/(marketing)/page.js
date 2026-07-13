@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import HeroStats from "@/components/HeroStats";
 import { GlobalScrollTracker } from "@/components/GlobalScrollTracker";
-import { ScrollStory } from "@/components/sections/ScrollStory";
+import { CareerScrollWrapper, CareerDetailsSection } from "@/components/scrollytelling";
 
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { PricingSection } from "@/components/sections/PricingSection";
@@ -22,7 +22,6 @@ import { faqs } from "@/data/faqs";
 import { Resume3DHero } from "@/components/landing/resume-3d-hero";
 import { AnimatedBackground } from "@/components/landing/animated-background";
 import { FeaturesGrid, PricingGrid, Testimonials, FAQ } from "@/components/landing/premium-sections";
-import { StoryboardHero } from "@/components/landing/storyboard-hero";
 import {
   Accordion,
   AccordionContent,
@@ -47,11 +46,11 @@ export default function LandingPage() {
       <AnimatedBackground />
       <GlobalScrollTracker />
       
-      {/* ------------- STORYBOARD HERO SECTION ------------- */}
-      <StoryboardHero autoPlay={true} interval={5000} />
+      {/* ------------- SCROLLYTELLING HERO ------------- */}
+      <CareerScrollWrapper />
 
-      {/* ------------- SCROLL STORY ------------- */}
-      <ScrollStory />
+      {/* ------------- POST-SCROLL DETAILS ------------- */}
+      <CareerDetailsSection />
 
       {/* ------------- FEATURES SECTION ------------- */}
       <section id="features" className="relative py-20 md:py-32 scroll-mt-20">
