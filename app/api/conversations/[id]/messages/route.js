@@ -1,9 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 import { messageCreateSchema, messageUpdateSchema } from "@/lib/schemas/forms";
-import { validateId } from "@/lib/validate";
-import { sanitizeInput } from "@/lib/sanitize";
+import { validateId } from "@/lib/ai/validate";
+import { sanitizeInput } from "@/lib/security/sanitize";
 
 export async function POST(request, context) {
   const params = await context.params;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { isValidQuizQuestions } from "@/lib/type-guards";
+import { isValidQuizQuestions } from "@/lib/auth/type-guards";
 import {
   Card,
   CardContent,

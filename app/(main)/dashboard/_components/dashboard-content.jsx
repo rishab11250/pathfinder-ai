@@ -10,7 +10,7 @@ import { IndustryTrends } from "./industry-trends";
 import { SkillGap } from "./skill-gap";
 import { AiRecommendations } from "./ai-recommendations";
 import { QuickActions } from "./quick-actions";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 import { Calendar, Split } from "lucide-react";
 import Link from "next/link";
 

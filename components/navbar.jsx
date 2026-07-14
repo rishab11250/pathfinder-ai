@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight, Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const NAV_LINKS = [

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Target, TrendingUp, GraduationCap, AlertCircle, Zap, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 
 function SkillBadge({ name, variant, index }) {
   return (

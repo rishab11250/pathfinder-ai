@@ -1,14 +1,14 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 
-import { db } from "@/lib/prisma";
-import { getUserByClerkId } from "@/lib/user";
+import { db } from "@/lib/db/prisma";
+import { getUserByClerkId } from "@/lib/auth/user";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { getHistoryUserContext } from "@/lib/history-auth";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { getHistoryUserContext } from "@/lib/history/history-auth";
 async function getPerformanceReviewUser(userId) {
   return getUserByClerkId(userId);
 }

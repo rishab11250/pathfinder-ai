@@ -2,8 +2,8 @@
 
 import { useState, useTransition, useRef } from "react";
 import { analyzeATS } from "@/actions/ats";
-import { extractTextFromFile, ACCEPTED_RESUME_TYPES } from "@/lib/extract-resume-text";
-import { cn } from "@/lib/utils";
+import { extractTextFromFile, ACCEPTED_RESUME_TYPES } from "@/lib/resume/extract-resume-text";
+import { cn } from "@/lib/misc/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";

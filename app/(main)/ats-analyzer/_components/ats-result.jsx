@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 import DOMPurify from "dompurify";
-import { normalizeAtsSuggestions } from "@/lib/ats";
+import { normalizeAtsSuggestions } from "@/lib/resume/ats";
 
 /* ───────────────── helpers ───────────────── */
 

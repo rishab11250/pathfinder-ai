@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { House, FileText, Copy, Menu, User, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 
 const TABS = [
   { name: "Home", icon: House, href: "/dashboard" },

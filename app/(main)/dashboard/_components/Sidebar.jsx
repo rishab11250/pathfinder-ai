@@ -17,7 +17,7 @@ import {
   Compass,
   Loader2
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 
 const NAV_ITEMS = [
   { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
