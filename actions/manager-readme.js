@@ -1,16 +1,16 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
-import { getUserByClerkId } from "@/lib/user";
+import { db } from "@/lib/db/prisma";
+import { getUserByClerkId } from "@/lib/auth/user";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { getHistoryUser } from "@/lib/history-user";
-import { createErrorResponse } from "@/lib/action-errors";
-import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
-import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { getHistoryUser } from "@/lib/history/history-user";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history/history-response";
+import { UNAUTHORIZED_RESPONSE } from "@/lib/auth/auth-errors";
 
 export async function buildReadme(style, boundaries, feedback) {
   const { userId } = await auth();

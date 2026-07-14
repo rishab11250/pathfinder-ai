@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 import { Calendar, Flag, Target, TrendingUp, Trophy, CheckCircle2 } from "lucide-react";
 import { toggleMilestoneCompletion } from "@/actions/roadmap";
 

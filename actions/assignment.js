@@ -1,25 +1,25 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { mapParsedOutput } from "@/lib/field-mapping";
-import { ACTION_CONTEXT } from "@/lib/action-context";
-import { getAiResponseText } from "@/lib/ai-response";
-import { db } from "@/lib/prisma";
-import { finalizeAiPersistence } from "@/lib/ai-persistence";
-import { requireAuthenticatedUser } from "@/lib/authenticated-user";
-import { buildUserLookup } from "@/lib/user-query";
-import { getAuthenticatedHistoryResponse } from "@/lib/history-response-auth";
-import { createSuccessResponse } from "@/lib/action-success";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { mapParsedOutput } from "@/lib/ai/field-mapping";
+import { ACTION_CONTEXT } from "@/lib/action-helpers/action-context";
+import { getAiResponseText } from "@/lib/ai/ai-response";
+import { db } from "@/lib/db/prisma";
+import { finalizeAiPersistence } from "@/lib/ai/ai-persistence";
+import { requireAuthenticatedUser } from "@/lib/auth/authenticated-user";
+import { buildUserLookup } from "@/lib/db/user-query";
+import { getAuthenticatedHistoryResponse } from "@/lib/history/history-response-auth";
+import { createSuccessResponse } from "@/lib/action-helpers/action-success";
 import { auth } from "@clerk/nextjs/server";
-import { logActionError } from "@/lib/action-logger";
+import { logActionError } from "@/lib/action-helpers/action-logger";
 import { revalidatePath } from "next/cache";
-import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { revalidateAppPath } from "@/lib/cache-revalidate";
-import { getAuthenticatedHistoryUser } from "@/lib/history-auth";
-import { buildHistoryResponse } from "@/lib/history-loader";
-import { generateGeminiContent } from "@/lib/gemini";
-import { getHistoryRecords } from "@/lib/history-query";
-import { USER_NOT_FOUND_RESPONSE } from "@/lib/user-not-found";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history/history-response";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { revalidateAppPath } from "@/lib/db/cache-revalidate";
+import { getAuthenticatedHistoryUser } from "@/lib/history/history-auth";
+import { buildHistoryResponse } from "@/lib/history/history-loader";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { getHistoryRecords } from "@/lib/history/history-query";
+import { USER_NOT_FOUND_RESPONSE } from "@/lib/errors/user-not-found";
 
 /** Grade an assignment submission against a rubric or prompt. */
 export async function gradeAssignment(promptText, solutionText) {

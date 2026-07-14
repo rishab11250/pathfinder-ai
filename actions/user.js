@@ -1,14 +1,14 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateAIInsights } from "./dashboard";
-import { getIndustryInsightRefreshTime } from "@/lib/industry-insights";
-import { validateInput } from "@/lib/validate";
+import { getIndustryInsightRefreshTime } from "@/lib/misc/industry-insights";
+import { validateInput } from "@/lib/ai/validate";
 import { userProfileSchema } from "@/lib/schemas/forms";
-import { withAuth } from "@/lib/auth-errors";
+import { withAuth } from "@/lib/auth/auth-errors";
 
 /**
  * Updates the current user's profile with industry and other info.

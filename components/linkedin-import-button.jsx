@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, Linkedin } from "lucide-react";
 import { toast } from "sonner";
-import { extractResumeText } from "@/lib/extract-text";
+import { extractResumeText } from "@/lib/resume/extract-text";
 import { importLinkedInProfile } from "@/actions/linkedin-import";
 import { useRouter } from "next/navigation";
 

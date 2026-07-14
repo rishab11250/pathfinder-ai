@@ -1,18 +1,18 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { validateInput, validateOutput } from "@/lib/validate";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors/errors";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { validateInput, validateOutput } from "@/lib/ai/validate";
 import { coverLetterInputSchema } from "@/lib/schemas/forms";
 import { coverLetterOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { JOB_DESCRIPTION_MAX_LENGTH } from "@/lib/input-limits";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { JOB_DESCRIPTION_MAX_LENGTH } from "@/lib/security/input-limits";
 
 const FALLBACK_COVER_LETTER = `Dear Hiring Manager,
 

@@ -1,20 +1,20 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { isFeatureEnabled } from "@/lib/ai-gating";
+import { isFeatureEnabled } from "@/lib/ai/ai-gating";
 import { ATS_ANALYSIS_CACHE_TTL_MS, cachedGenerateGeminiContent, generateCacheKey } from "@/lib/cache";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { validateInput, validateOutput, parseAIJson } from "@/lib/validate";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { validateInput, validateOutput, parseAIJson } from "@/lib/ai/validate";
 import { atsAnalysisSchema } from "@/lib/schemas/forms";
 import { atsAnalysisOutputSchema } from "@/lib/schemas";
-import { normalizeAtsSuggestions } from "@/lib/ats";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
+import { normalizeAtsSuggestions } from "@/lib/resume/ats";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors/errors";
 
 /**
  * Runs an ATS analysis using Gemini AI and persists the result safely.

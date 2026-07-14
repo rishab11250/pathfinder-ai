@@ -1,5 +1,5 @@
-import { db } from "@/lib/prisma";
-import { isAiEnabled } from "@/lib/ai-gating";
+import { db } from "@/lib/db/prisma";
+import { isAiEnabled } from "@/lib/ai/ai-gating";
 import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function GET() {

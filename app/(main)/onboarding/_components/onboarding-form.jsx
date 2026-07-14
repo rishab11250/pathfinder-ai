@@ -30,7 +30,7 @@ import {
 import useFetch from "@/hooks/use-fetch";
 import { onboardingSchema } from "@/app/lib/schema";
 import { updateUser } from "@/actions/user";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 import LinkedinImportButton from "@/components/linkedin-import-button";
 
 const BIO_MAX = 500;

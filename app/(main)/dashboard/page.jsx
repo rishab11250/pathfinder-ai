@@ -1,9 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/prisma";
-import { isIndustryInsightStale } from "@/lib/industry-insights";
+import { db } from "@/lib/db/prisma";
+import { isIndustryInsightStale } from "@/lib/misc/industry-insights";
 import { getIndustryInsights } from "@/actions/dashboard";
-import { getUserHistory } from "@/lib/history-query";
+import { getUserHistory } from "@/lib/history/history-query";
 import { DashboardContent } from "./_components/dashboard-content";
 import { EmptyState } from "./_components/empty-state";
 

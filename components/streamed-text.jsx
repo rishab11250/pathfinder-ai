@@ -8,7 +8,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { useDebounce } from "use-debounce";
 import CitationRenderer from "@/components/chat/citation-renderer";
 import React, { useState, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 
 const CodeBlock = ({ children }) => {
   const [copied, setCopied] = useState(false);

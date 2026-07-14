@@ -1,4 +1,4 @@
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 import React, { useEffect, useState } from 'react';
 
 // Mock data fetch function (replace with actual data fetching as necessary)

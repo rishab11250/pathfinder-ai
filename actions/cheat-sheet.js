@@ -1,18 +1,18 @@
 "use server";
-import { requireHistoryUser } from "@/lib/history-guard";
-import { handleServerError } from "@/lib/error-handler";
-import { parseAiResponse } from "@/lib/ai-parser";
-import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
-import { createErrorResponse } from "@/lib/action-errors";
-import { getAiResponseText } from "@/lib/ai-response";
-import { db } from "@/lib/prisma";
+import { requireHistoryUser } from "@/lib/history/history-guard";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { parseAiResponse } from "@/lib/ai/ai-parser";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history/history-response";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
+import { getAiResponseText } from "@/lib/ai/ai-response";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { invokeAiGeneration } from "@/lib/ai-generator";
+import { invokeAiGeneration } from "@/lib/ai/ai-generator";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { buildUserLookup } from "@/lib/user-query";
-import { buildHistoryResponse } from "@/lib/history-loader";
-import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { buildUserLookup } from "@/lib/db/user-query";
+import { buildHistoryResponse } from "@/lib/history/history-loader";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 
 export async function generateCheatSheet(company, role) {
   const { userId } = await auth();

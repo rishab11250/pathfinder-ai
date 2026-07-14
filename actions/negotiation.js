@@ -1,11 +1,11 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { generateGeminiContent } from "@/lib/gemini";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
 
 export async function chatSalaryNegotiation(history, userMessage) {
   const { userId } = await auth();

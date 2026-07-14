@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { generateGeminiContentStream } from "@/lib/gemini";
-import { db } from "@/lib/prisma";
+import { generateGeminiContentStream } from "@/lib/ai/gemini";
+import { db } from "@/lib/db/prisma";
 
 const rateLimitMap = new Map();
 
