@@ -7,6 +7,24 @@ import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
 
+function normalizePortfolioContent(content) {
+  if (!content) return content;
+  if (content.projects && Array.isArray(content.projects)) {
+    content.projects = content.projects.map(proj => {
+      let techStack = proj.techStack;
+      if (typeof techStack === 'string') {
+        techStack = techStack.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (!Array.isArray(techStack)) {
+        techStack = [];
+      } else {
+        techStack = techStack.filter(Boolean);
+      }
+      return { ...proj, techStack };
+    });
+  }
+  return content;
+}
+
 // Helper to check user session and db record
 async function getAuthenticatedUser() {
   const { userId } = await auth();
@@ -56,7 +74,9 @@ The JSON MUST match this exact schema:
     {
       "name": "Project Name",
       "description": "What the project is and technologies used",
-      "link": "URL if available, otherwise empty string"
+      "link": "URL if available, otherwise empty string",
+      "techStack": ["Skill 1", "Skill 2"],
+      "image": ""
     }
   ],
   "skills": ["Skill 1", "Skill 2", "Skill 3"]
@@ -81,6 +101,7 @@ Rules:
       // Remove any markdown block syntax if present
       const cleaned = rawText.replace(/^```json/g, "").replace(/```$/g, "").trim();
       parsedContent = JSON.parse(cleaned);
+      parsedContent = normalizePortfolioContent(parsedContent);
     } catch (e) {
       console.error("Failed to parse Gemini output as JSON", e, rawText);
       return { success: false, errors: { _form: ["Failed to generate valid portfolio structure. Please try again."] } };
@@ -144,10 +165,12 @@ export async function updatePortfolio(data) {
       }
     }
 
+    const normalizedContent = data.content ? normalizePortfolioContent(data.content) : undefined;
+
     const portfolio = await db.portfolio.update({
       where: { userId: user.id },
       data: {
-        ...(data.content && { content: data.content }),
+        ...(normalizedContent && { content: normalizedContent }),
         ...(data.theme && { theme: data.theme }),
         ...(data.slug && { slug: data.slug }),
         ...(typeof data.isPublished === "boolean" && { isPublished: data.isPublished }),
