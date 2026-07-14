@@ -27,7 +27,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { normalizeAtsSuggestions } from "@/lib/ats";
+import { normalizeAtsSuggestions } from "@/lib/resume/ats";
 
 function ScoreBadge({ score }) {
   if (score >= 75)

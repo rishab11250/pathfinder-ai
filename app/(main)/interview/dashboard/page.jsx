@@ -1,7 +1,7 @@
 import React from "react";
-import { getAuthenticatedUser } from "@/lib/authenticated-user";
-import prisma from "@/lib/prisma";
-import { getInterviewInsights } from "@/lib/interview-insights";
+import { getAuthenticatedUser } from "@/lib/auth/authenticated-user";
+import prisma from "@/lib/db/prisma";
+import { getInterviewInsights } from "@/lib/misc/interview-insights";
 import { ProgressionChart, CategoryRadarChart } from "@/components/interview-dashboard-charts";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

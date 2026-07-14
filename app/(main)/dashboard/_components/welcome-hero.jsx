@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Sparkles, Building2, Target, Clock3, TrendingUp, ShieldCheck, BrainCircuit } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/misc/utils";
 import LinkedinImportButton from "@/components/linkedin-import-button";
 
 const ringColors = {
