@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { generateResumeContent, getResumeHistory } from "@/actions/resume-builder";
 import { FileText, Download, Sparkles, Building, Briefcase } from "lucide-react";
-import { isValidResume } from "@/lib/type-guards";
+import { isValidResume } from "@/lib/auth/type-guards";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

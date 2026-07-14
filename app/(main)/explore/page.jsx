@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Compass, Sparkles } from "lucide-react";
 import { CareerCard } from "./_components/career-card";
 import { CompareFloatingBar } from "./_components/compare-floating-bar";
-import { MOCK_CAREERS } from "@/lib/mock-careers";
+import { MOCK_CAREERS } from "@/lib/misc/mock-careers";
 
 export default function ExploreCareersPage() {
   return (
