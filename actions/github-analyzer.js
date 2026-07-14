@@ -1,14 +1,14 @@
 "use server";
-import { createErrorResponse } from "@/lib/action-errors";
-import { db } from "@/lib/prisma";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { validateInput, parseAIJson } from "@/lib/validate";
+import { validateInput, parseAIJson } from "@/lib/ai/validate";
 import { githubAnalyzerSchema } from "@/lib/schemas/forms";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
 
 export async function optimizeGithubProfile(data) {
   const { userId } = await auth();

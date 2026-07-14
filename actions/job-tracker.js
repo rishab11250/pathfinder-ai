@@ -1,13 +1,13 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { fetchRecentJobEmails } from "@/lib/google/gmail";
-import { extractJobApplicationFromEmail } from "@/lib/gemini";
-import { validateInput } from "@/lib/validate";
+import { extractJobApplicationFromEmail } from "@/lib/ai/gemini";
+import { validateInput } from "@/lib/ai/validate";
 import { jobApplicationSchema, jobApplicationUpdateStatusSchema } from "@/lib/schemas/forms";
 
 export async function getJobApplications() {

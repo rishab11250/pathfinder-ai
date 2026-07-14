@@ -1,13 +1,13 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildUserProfileContext } from "@/lib/ai-context";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
 
 export async function generateProposal(projectDetails, rate) {
   const { userId } = await auth();
