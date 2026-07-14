@@ -71,7 +71,7 @@ const OnboardingForm = ({ industries }) => {
       return;
     }
     try {
-      const formattedIndustry = `${values.industry}-${values.subIndustry
+      const formattedIndustry = `${values.industry}-${(values.subIndustry || "")
         .toLowerCase()
         .replace(/ /g, "-")}`;
       const { subIndustry, ...cleanValues } = values;

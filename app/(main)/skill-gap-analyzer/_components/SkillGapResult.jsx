@@ -48,7 +48,7 @@ const roadmapToText = (roadmap) => {
       (week) => `${week.week}
 Focus: ${week.focus}
 
-${week.tasks.map((task) => `• ${task}`).join("\n")}`
+${(week.tasks || []).map((task) => `• ${task}`).join("\n")}`
     ),
   ].join("\n\n");
 };
