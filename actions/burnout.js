@@ -1,18 +1,18 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { getAiResponseText } from "@/lib/ai-response";
-import { ACTION_CONTEXT } from "@/lib/action-context";
-import { db } from "@/lib/prisma";
-import { finalizeAiPersistence } from "@/lib/ai-persistence";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { getAiResponseText } from "@/lib/ai/ai-response";
+import { ACTION_CONTEXT } from "@/lib/action-helpers/action-context";
+import { db } from "@/lib/db/prisma";
+import { finalizeAiPersistence } from "@/lib/ai/ai-persistence";
 import { auth } from "@clerk/nextjs/server";
-import { getHistoryRecords } from "@/lib/history-query";
-import { buildUserLookup } from "@/lib/user-query";
-import { buildHistoryResponse } from "@/lib/history-loader";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { USER_NOT_FOUND_RESPONSE } from "@/lib/user-not-found";
-import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
+import { getHistoryRecords } from "@/lib/history/history-query";
+import { buildUserLookup } from "@/lib/db/user-query";
+import { buildHistoryResponse } from "@/lib/history/history-loader";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { USER_NOT_FOUND_RESPONSE } from "@/lib/errors/user-not-found";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history/history-response";
 
 /** Assess burnout risk based on user survey responses. */
 export async function assessBurnout(symptoms, workload) {

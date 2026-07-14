@@ -1,15 +1,15 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { generateWithStructuredOutput, buildSecurePrompt } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { validateInput, validateOutput } from "@/lib/validate";
+import { generateWithStructuredOutput, buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { validateInput, validateOutput } from "@/lib/ai/validate";
 import { bulletRewriterSchema, bulletRewriterOutputSchema } from "@/lib/schemas/forms";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { assertFeatureEnabled } from "@/lib/ai-gating";
-import { generateGeminiContent } from "@/lib/gemini";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { assertFeatureEnabled } from "@/lib/ai/ai-gating";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 
 /** Rewrite a resume bullet point for stronger impact. */
 export async function rewriteBullet(rawParams) {

@@ -1,22 +1,22 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
-import { buildUserLookup } from "@/lib/user-query";
-import { db } from "@/lib/prisma";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
+import { buildUserLookup } from "@/lib/db/user-query";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 import { careerDecisionSchema } from "@/lib/schemas/forms";
 import { careerDecisionOutputSchema } from "@/lib/schemas/outputs";
-import { validateInput } from "@/lib/validate";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { getAuthenticatedUserId } from "@/lib/auth-userid";
-import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
-import { createSuccessResponse } from "@/lib/action-success";
-import { getUserHistory } from "@/lib/history-query";
-import { createHistoryResponse } from "@/lib/history-response";
-import { createRecord } from "@/lib/record-create";
+import { validateInput } from "@/lib/ai/validate";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { getAuthenticatedUserId } from "@/lib/auth/auth-userid";
+import { UNAUTHORIZED_RESPONSE } from "@/lib/auth/auth-errors";
+import { createSuccessResponse } from "@/lib/action-helpers/action-success";
+import { getUserHistory } from "@/lib/history/history-query";
+import { createHistoryResponse } from "@/lib/history/history-response";
+import { createRecord } from "@/lib/db/record-create";
 
 export async function simulateCareerDecision(input) {
   const userId = await getAuthenticatedUserId(auth);

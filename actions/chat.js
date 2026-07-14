@@ -1,16 +1,16 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
 import { auth } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
-import { db } from "@/lib/prisma";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { enforceRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
-import { validateInput } from "@/lib/validate";
+import { db } from "@/lib/db/prisma";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { enforceRateLimit, getRateLimitIdentifier } from "@/lib/security/rate-limit";
+import { validateInput } from "@/lib/ai/validate";
 import { chatPromptSchema } from "@/lib/schemas/forms";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
 
 export async function chatWithGemini(prompt) {
   try {
