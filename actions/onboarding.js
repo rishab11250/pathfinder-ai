@@ -1,14 +1,14 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 
-import { db } from "@/lib/prisma";
-import { createAiValidationError } from "@/lib/ai-validation-response";
+import { db } from "@/lib/db/prisma";
+import { createAiValidationError } from "@/lib/ai/ai-validation-response";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { validateOutput } from "@/lib/validate";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { validateOutput } from "@/lib/ai/validate";
 import { onboardingPlanOutputSchema } from "@/lib/schemas/outputs";
 
 export async function generateOnboardingPlan(company, role) {

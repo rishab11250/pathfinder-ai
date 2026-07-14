@@ -1,11 +1,11 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
 import { auth } from "@clerk/nextjs/server";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
-import { createAiValidationError } from "@/lib/ai-validation-response";
-import { validateOutput } from "@/lib/validate";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { createAiValidationError } from "@/lib/ai/ai-validation-response";
+import { validateOutput } from "@/lib/ai/validate";
 import { resumeRoastOutputSchema } from "@/lib/schemas/outputs";
 
 export async function generateResumeRoast(resumeContent) {

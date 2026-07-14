@@ -1,12 +1,12 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
-import { db } from "@/lib/prisma";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors/errors";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
 
 export async function generateSkillGapAnalysis(data) {
   try {
