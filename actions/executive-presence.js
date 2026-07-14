@@ -1,15 +1,15 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { validateOutput } from "@/lib/validate";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors/errors";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildSecurePrompt, generateWithStructuredOutput } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { validateOutput } from "@/lib/ai/validate";
 import { executivePresenceOutputSchema, SCHEMA_DESCRIPTIONS } from "@/lib/schemas/outputs";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
 
 const EXECUTIVE_SYSTEM_CONTEXT = `You are a C-level executive coach specializing in leadership communication, gravitas, and executive presence. Your goal is to help professionals transition from functional experts to influential leaders. You focus on removing hedging language, increasing clarity, and commanding the room in high-stakes scenarios.`;
 
