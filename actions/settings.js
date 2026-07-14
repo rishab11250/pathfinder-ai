@@ -1,11 +1,11 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
-import { getUserByClerkId } from "@/lib/user";
+import { db } from "@/lib/db/prisma";
+import { getUserByClerkId } from "@/lib/auth/user";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { validateInput } from "@/lib/validate";
+import { validateInput } from "@/lib/ai/validate";
 import { userSettingsSchema, accessibilitySettingsSchema } from "@/lib/schemas/forms";
 
 function normalizeSettings(settings) {
