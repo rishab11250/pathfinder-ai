@@ -1,24 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
-import { generateGeminiContentStream } from "@/lib/gemini";
-import { db } from "@/lib/prisma";
-import { isFeatureEnabled } from "@/lib/ai-gating";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { buildUserAiContext } from "@/lib/ai-context";
+import { generateGeminiContentStream } from "@/lib/ai/gemini";
+import { db } from "@/lib/db/prisma";
+import { isFeatureEnabled } from "@/lib/ai/ai-gating";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { buildUserAiContext } from "@/lib/ai/ai-context";
 import { chatPromptSchema as chatPromptSchemaStr } from "@/lib/schemas/chat";
 import {
   getRateLimitIdentifier,
   enforceRateLimit,
   buildRateLimitResponse,
   extractTrustedClientIp,
-} from "@/lib/rate-limit";
+} from "@/lib/security/rate-limit";
 import {
   preparePromptForGeneration,
   buildSseErrorResponse,
-} from "@/lib/prompt-guard";
+} from "@/lib/ai/prompt-guard";
 import {
   buildCorsDeniedResponse,
   resolveCorsPolicy,
-} from "@/lib/cors";
+} from "@/lib/security/cors";
 import {
   getCachedResponse,
   cacheResponse,
@@ -28,9 +28,9 @@ import {
   getOrCreatePendingRequest,
 } from "@/lib/cache/cache-service";
 import { respondError, respondSseError, ERROR_CODES } from "@/lib/api/error-handler";
-import { validateInput, validateId } from "@/lib/validate";
+import { validateInput, validateId } from "@/lib/ai/validate";
 import { chatPromptSchema } from "@/lib/schemas/forms";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/security/env";
 
 const SSE_BASE_HEADERS = {
   "Content-Type": "text/event-stream; charset=utf-8",
