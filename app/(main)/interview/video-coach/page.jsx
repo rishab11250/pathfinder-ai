@@ -81,9 +81,17 @@ export default function VideoCoachPage() {
     }
 
     return () => {
+      // Stop speech recognition to release its WebSocket connection
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch {}
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current = null;
+      }
       // Cleanup stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
     };
   }, [oneTapCameraMode]);

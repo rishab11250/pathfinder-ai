@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { isValidQuizQuestions } from "@/lib/type-guards";
+import { isValidQuizQuestions } from "@/lib/auth/type-guards";
 import {
   Card,
   CardContent,
@@ -66,6 +66,7 @@ export default function Quiz() {
 
   useEffect(() => {
     if (questions && questions.length > 0) {
+      setCurrentQuestion(0);
       setAnswers(new Array(questions.length).fill(null));
     }
   }, [quizData, questions]);
@@ -196,7 +197,8 @@ export default function Quiz() {
     );
   }
 
-  const question = questions[currentQuestion];
+  const question = questions?.[currentQuestion];
+  if (questions.length === 0 || !question) return <div className="text-center p-8 text-muted-foreground">Question not available</div>;
   const isFallback = quizData.isFallback;
 
   return (

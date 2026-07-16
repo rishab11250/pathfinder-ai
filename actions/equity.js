@@ -1,17 +1,17 @@
 "use server";
-import { requireHistoryUser } from "@/lib/history-guard";
-import { handleServerError } from "@/lib/error-handler";
-import { parseAiResponse } from "@/lib/ai-parser";
-import { createErrorResponse } from "@/lib/action-errors";
-import { getAiResponseText } from "@/lib/ai-response";
-import { db } from "@/lib/prisma";
-import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
+import { requireHistoryUser } from "@/lib/history/history-guard";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { parseAiResponse } from "@/lib/ai/ai-parser";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
+import { getAiResponseText } from "@/lib/ai/ai-response";
+import { db } from "@/lib/db/prisma";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history/history-response";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { invokeAiGeneration } from "@/lib/ai-generator";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildHistoryResponse } from "@/lib/history-loader";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { invokeAiGeneration } from "@/lib/ai/ai-generator";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildHistoryResponse } from "@/lib/history/history-loader";
 
 export async function decodeEquityOffer(offerDetails) {
   const { userId } = await auth();

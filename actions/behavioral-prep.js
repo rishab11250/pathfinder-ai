@@ -1,14 +1,14 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { db } from "@/lib/prisma";
-import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { db } from "@/lib/db/prisma";
+import { UNAUTHORIZED_RESPONSE } from "@/lib/auth/auth-errors";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { generateAndParseJson } from "@/lib/ai-generation";
-import { generateGeminiContent } from "@/lib/gemini";
-import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors";
-import { createAiPrompt } from "@/lib/prompt-builder";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { generateAndParseJson } from "@/lib/ai/ai-generation";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { USER_NOT_FOUND_MESSAGE } from "@/lib/errors/errors";
+import { createAiPrompt } from "@/lib/ai/prompt-builder";
 
 /** Generate a behavioral interview assessment strategy. */
 export async function generateAssessmentStrategy(company, assessmentType) {

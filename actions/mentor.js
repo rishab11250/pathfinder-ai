@@ -1,13 +1,13 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { createErrorResponse } from "@/lib/action-errors";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 
-import { db } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth-user";
+import { db } from "@/lib/db/prisma";
+import { getAuthenticatedUser } from "@/lib/auth/auth-user";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
-import { generateGeminiContent } from "@/lib/gemini";
+import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 
 export async function generateMentorPlan(goals, targetIndustry) {
   const { userId } = await auth();

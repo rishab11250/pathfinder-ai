@@ -7,16 +7,24 @@ import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import { useDebounce } from "use-debounce";
 import CitationRenderer from "@/components/chat/citation-renderer";
-import React, { useState } from "react";
-import { cn } from "@/lib/utils";
+import React, { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/misc/utils";
 
 const CodeBlock = ({ children }) => {
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const onCopy = () => {
-    navigator.clipboard.writeText(children);
+    navigator.clipboard.writeText(children).catch(() => {});
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   return (

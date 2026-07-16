@@ -78,14 +78,14 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    let active = true;
-    fetch("/api/dev/status")
+    const controller = new AbortController();
+    fetch("/api/dev/status", { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
-        if (active && data?.clerkKeyless) setClerkKeyless(true);
+        if (data?.clerkKeyless) setClerkKeyless(true);
       })
       .catch(() => {});
-    return () => (active = false);
+    return () => controller.abort();
   }, []);
 
   const logoSrc =

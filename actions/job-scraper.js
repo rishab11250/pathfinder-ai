@@ -1,14 +1,14 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
 import { auth } from "@clerk/nextjs/server";
-import { generateGeminiContent } from "@/lib/gemini";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 import { JSDOM } from "jsdom";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { parseAIJson } from "@/lib/validate";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { parseAIJson } from "@/lib/ai/validate";
 
-import { safeFetch } from "../lib/safe-fetch.js";
-import { checkRateLimit } from "../lib/rate-limit-actions.js";
+import { safeFetch } from "@/lib/security/safe-fetch";
+import { checkRateLimit } from "@/lib/security/rate-limit-actions";
 
 export async function parseJobUrl(url) {
   const { userId } = await auth();

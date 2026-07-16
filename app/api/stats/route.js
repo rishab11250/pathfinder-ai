@@ -1,4 +1,4 @@
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 
 export async function GET() {

@@ -1,14 +1,14 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { createLookupResponse } from "@/lib/lookup-response";
+import { createLookupResponse } from "@/lib/errors/lookup-response";
 import {
   generateIndustryInsightData,
   getIndustryInsightRefreshTime,
   isIndustryInsightStale,
-} from "@/lib/industry-insights";
+} from "@/lib/misc/industry-insights";
 
 export async function getDashboardStats() {
   const { userId } = await auth();

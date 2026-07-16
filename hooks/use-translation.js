@@ -1,5 +1,5 @@
 import { useAccessibility } from "@/components/accessibility-provider";
-import { translations } from "@/lib/translations";
+import { translations } from "@/lib/misc/translations";
 
 export function useTranslation() {
   const { preferredLanguage } = useAccessibility();

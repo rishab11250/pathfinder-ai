@@ -1,22 +1,22 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
-import { validateAuthenticatedUser } from "@/lib/auth-user";
-import { JOB_DESCRIPTION_MAX_LENGTH } from "@/lib/input-limits";
-import { isValidAIOutput } from "@/lib/ai-validation";
-import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
-import { db } from "@/lib/prisma";
-import { getHistoryUserContext } from "@/lib/history-auth";
-import { getUserByClerkId } from "@/lib/user";
+import { handleServerError } from "@/lib/errors/error-handler";
+import { validateAuthenticatedUser } from "@/lib/auth/auth-user";
+import { JOB_DESCRIPTION_MAX_LENGTH } from "@/lib/security/input-limits";
+import { isValidAIOutput } from "@/lib/ai/ai-validation";
+import { UNAUTHORIZED_RESPONSE } from "@/lib/auth/auth-errors";
+import { db } from "@/lib/db/prisma";
+import { getHistoryUserContext } from "@/lib/history/history-auth";
+import { getUserByClerkId } from "@/lib/auth/user";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { validateOutput } from "@/lib/validate";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { validateOutput } from "@/lib/ai/validate";
 import { resumeOutputSchema } from "@/lib/schemas/resume";
-import { generateGeminiContent } from "@/lib/gemini";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
-import { createErrorResponse } from "@/lib/action-errors";
+import { generateGeminiContent } from "@/lib/ai/gemini";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history/history-response";
+import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 async function getResumeBuilderUser(userId) {
   return getUserByClerkId(userId);
 }

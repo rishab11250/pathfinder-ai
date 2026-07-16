@@ -7,7 +7,7 @@ import { deleteJobApplication, updateJobApplicationInterviewDate } from "@/actio
 import { toast } from "sonner";
 import Link from "next/link";
 
-export default function JobCard({ job, onDelete }) {
+export default function JobCard({ job, onDelete, onUpdate }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [interviewDate, setInterviewDate] = useState(() => {
@@ -38,9 +38,8 @@ export default function JobCard({ job, onDelete }) {
     const res = await updateJobApplicationInterviewDate(job.id, interviewDate);
     if (res.success) {
       toast.success("Interview date updated");
-      const newDate = interviewDate ? new Date(interviewDate) : null;
-      if (newDate && !isNaN(newDate.getTime())) {
-        job.interviewDate = newDate;
+      if (onUpdate) {
+        onUpdate(job.id, { interviewDate: interviewDate ? new Date(interviewDate) : null });
       }
       setShowDatePicker(false);
     } else {

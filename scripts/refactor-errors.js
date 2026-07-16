@@ -9,11 +9,11 @@ function refactorFile(filePath) {
   if (!content.includes('import { handleServerError }')) {
     // Add import right after "use server"; or at the top
     if (content.includes('"use server";')) {
-      content = content.replace('"use server";', '"use server";\nimport { handleServerError } from "@/lib/error-handler";');
+      content = content.replace('"use server";', '"use server";\nimport { handleServerError } from "@/lib/errors/error-handler";');
     } else if (content.includes("'use server';")) {
       content = content.replace("'use server';", "'use server';\nimport { handleServerError } from \"@/lib/error-handler\";");
     } else {
-      content = 'import { handleServerError } from "@/lib/error-handler";\n' + content;
+      content = 'import { handleServerError } from "@/lib/errors/error-handler";\n' + content;
     }
   }
 

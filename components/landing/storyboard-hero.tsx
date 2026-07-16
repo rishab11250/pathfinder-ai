@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronRight, Sparkles, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -372,18 +372,7 @@ export function StoryboardHero({ autoPlay = true, interval = 5000 }: StoryboardH
         </motion.div>
       </div>
 
-      {/* Animated transition effect */}
-      <AnimatePresence>
-        {currentFrame !== currentFrame && (
-          <motion.div
-            key="transition"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-white pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }

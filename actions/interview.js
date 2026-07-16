@@ -1,20 +1,20 @@
 "use server";
-import { handleServerError } from "@/lib/error-handler";
+import { handleServerError } from "@/lib/errors/error-handler";
 
 import crypto from "crypto";
-import { db } from "@/lib/prisma";
+import { db } from "@/lib/db/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { generateGeminiContent } from "@/lib/gemini";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 import { cachedGenerateGeminiContent, QUIZ_CACHE_TTL_MS, generateCacheKey, getCacheStore } from "@/lib/cache";
-import { buildSecurePrompt } from "@/lib/prompt-safety";
-import { buildUserProfileContext } from "@/lib/ai-context";
-import { parseAIJson } from "@/lib/validate";
-import { validateInput, validateOutput } from "@/lib/validate";
+import { buildSecurePrompt } from "@/lib/ai/prompt-safety";
+import { buildUserProfileContext } from "@/lib/ai/ai-context";
+import { parseAIJson } from "@/lib/ai/validate";
+import { validateInput, validateOutput } from "@/lib/ai/validate";
 import { quizCategorySchema, quizResultSaveSchema, quizResultSaveSessionSchema } from "@/lib/schemas/forms";
 import { interviewQuestionsOutputSchema, voiceFeedbackOutputSchema, videoFeedbackOutputSchema } from "@/lib/schemas";
-import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
-import { translations } from "@/lib/translations";
-import { unwrap } from "@/lib/redis-result";
+import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
+import { translations } from "@/lib/misc/translations";
+import { unwrap } from "@/lib/db/redis-result";
 
 // Fallback MCQ questions in case Gemini generation fails, categorized by industry
 const TECH_FALLBACK_QUESTIONS = [

@@ -2,6 +2,8 @@ import { getATSAnalyses } from "@/actions/ats";
 import { getResume } from "@/actions/resume";
 import { getUserOnboardingStatus } from "@/actions/user";
 import { redirect } from "next/navigation";
+import { Sparkles, ScanSearch } from "lucide-react";
+import ATSAnalyzerPage from "./_components/ats-analyzer-page";
 
 export const dynamic = "force-dynamic";
 
