@@ -13,11 +13,11 @@ export async function createIssue(data) {
       return { success: false, error: "Unauthorized to submit an issue." };
     }
 
-    let dbUser = await db.user.findUnique({
+    const validatedData = issueSchema.parse(data);
+
+    const dbUser = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-
-    const validatedData = issueSchema.parse(data);
 
     const issue = await db.issue.create({
       data: {
