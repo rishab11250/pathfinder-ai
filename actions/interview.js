@@ -605,6 +605,15 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
         throw new Error("Invalid questions structure received from AI.");
       }
       questions = quizValidation.data.questions.slice(0, 10);
+    } catch (error) {
+      console.error("AI Quiz generation failed, using fallback questions:", error);
+      const industryId = user.industry?.split("-")[0]?.toLowerCase() || "tech";
+      questions = FallbackQuizPool[industryId] || TECH_FALLBACK_QUESTIONS;
+    }
+
+    const sessionId = crypto.randomUUID();
+
+      questions = quizValidation.data.questions.slice(0, 10);
       isFallback = false;
     } catch (error) {
       return handleServerError(error, "interview");
@@ -617,6 +626,14 @@ Return ONLY a valid JSON object matching this schema. Do not output any markdown
 
     return { sessionId, questions, isFallback };
   } catch (error) {
+    console.error("Quiz generation top-level error:", error);
+    if (process.env.NODE_ENV === "test") {
+      throw error;
+    }
+    return {
+      success: false,
+      error: error.message || "Failed to generate quiz."
+    };
     return handleServerError(error, "interview");
   }
 }
@@ -629,12 +646,46 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
+    if (!sessionId) {
+      throw new Error("Session ID is required.");
+    }
+
+    let questions;
+    let isCached = false;
+    let cacheKey = null;
+
+    if (typeof sessionId === "string") {
+      cacheKey = generateCacheKey("quiz-session", userId, sessionId);
+      questions = await cacheStore.get(cacheKey);
+      if (!questions) {
+        throw new Error("Quiz session expired or not found. Please start a new quiz.");
+      }
+      isCached = true;
+    } else if (Array.isArray(sessionId)) {
+      questions = sessionId;
+    } else {
+      throw new Error("Session ID or questions array is required.");
+    }
+export async function saveQuizResult(sessionIdOrQuestions, answers, category = "Technical") {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
     if (!sessionId) {
       throw new Error("Session ID is required.");
     }
 
     const validation = validateInput(quizResultSaveSessionSchema, { sessionId, answers, category });
     if (!validation.success) return { success: false, errors: validation.errors };
+
+    const sanitizedAnswers = Array.isArray(answers)
+      ? answers.slice(0, questions.length)
+      : [];
 
     const {
       sessionId: validatedSessionId,
@@ -705,6 +756,7 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
       }
     });
 
+    const computedScore = questions.length > 0
     const score = questions.length > 0
       ? Math.round((correctCount / questions.length) * 100)
       : 0;
@@ -722,6 +774,8 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
         task: "You are a supportive career mentor. The candidate completed a quiz. Provide an encouraging, actionable improvement tip (strictly max 2 sentences) recommending key learning areas. Be positive, warm, and professional. Do not refer to question indexes or speak critically.",
         untrustedData: [
           { label: "industry", value: user.industry || "software", maxLength: 200 },
+          { label: "category", value: category, maxLength: 200 },
+          { label: "score", value: String(computedScore), maxLength: 50 },
           { label: "category", value: validatedCategory, maxLength: 200 },
           { label: "score", value: String(score), maxLength: 50 },
           { label: "wrongAnswers", value: wrongText, maxLength: 4000 },
@@ -734,6 +788,10 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
       } catch (e) {
         console.error("Failed to generate custom AI improvement tip:", e);
         const industryText = user.industry ? `in ${user.industry.toLowerCase()}` : "in your field";
+        improvementTip = `Focus on reviewing core ${category.toLowerCase()} concepts and typical industry practices ${industryText} to strengthen your skills.`;
+      }
+    return handleServerError(e, "interview");
+  }
         improvementTip = `Focus on reviewing core ${validatedCategory.toLowerCase()} concepts and typical industry practices ${industryText} to strengthen your skills.`;
       }
     }
@@ -743,11 +801,16 @@ export async function saveQuizResult(sessionId, answers, category = "Technical")
         userId: user.id,
         quizScore: score,
         questions: questionResults,
+        category: category,
+        category,
         category: validatedCategory,
         improvementTip,
       },
     });
 
+    if (isCached && cacheKey) {
+      await cacheStore.delete(cacheKey);
+    }
     await cacheStore.delete(cacheKey);
 
     return assessment;
