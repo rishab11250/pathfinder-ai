@@ -104,6 +104,7 @@ model User {
   resumeMatchAnalyses   ResumeMatchAnalysis[]
   careerDecisionSimulations CareerDecisionSimulation[]
   mockInterviewSessions MockInterviewSession[]
+  issues                Issue[]
 }
 
 model Assessment {
@@ -867,6 +868,22 @@ model CareerDecisionSimulation {
   options   Json
   analysis  Json
   createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Issue {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title       String
+  description String   @db.Text
+  category    String
+  priority    String
+  status      String   @default("Open")
+  url         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([userId])
 }
