@@ -45,7 +45,7 @@ export function IssueFormModal({ children }) {
       description: "",
       category: "",
       priority: "",
-      url: typeof window !== "undefined" ? window.location.href : "",
+      url: typeof window !== "undefined" ? window.location.origin + window.location.pathname : "",
     },
   });
 

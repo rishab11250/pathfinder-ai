@@ -9,18 +9,13 @@ export async function createIssue(data) {
   try {
     const { userId } = await auth();
 
-    // The user might not be logged in, we still want to allow feedback if possible,
-    // but looking at the schema, User is related to userId.
-    // If we require them to be logged in:
-    // (We'll check if there's a user. If not, userId remains null)
-    
-    // We can also query to see if the user exists in our DB, since clerkUserId != User.id
-    let dbUser = null;
-    if (userId) {
-      dbUser = await db.user.findUnique({
-        where: { clerkUserId: userId },
-      });
+    if (!userId) {
+      return { success: false, error: "Unauthorized to submit an issue." };
     }
+
+    let dbUser = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
 
     const validatedData = issueSchema.parse(data);
 
