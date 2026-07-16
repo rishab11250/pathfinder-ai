@@ -6,12 +6,12 @@ import { validateDevBypass, validateVideoCoachBypass } from "./lib/auth/dev-bypa
 function addSecureHeaders(response) {
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.pathfinder.ai https://*.clerk.com https://challenges.cloudflare.com https://accounts.google.com https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.pathfinder.ai https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://accounts.google.com https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://clerk.pathfinder.ai https://*.clerk.com https://challenges.cloudflare.com https://*.googleapis.com https://analytics.google.com https://www.google-analytics.com https://o4508291182551040.ingest.us.sentry.io https://sentry.io https://api.anthropic.com https://api-inference.huggingface.co https://inngest.com https://*.inngest.com wss://ws-us2.gitpod.io wss://*.gitpod.io",
-    "frame-src 'self' https://challenges.cloudflare.com https://accounts.google.com https://www.google.com",
+    "connect-src 'self' https://clerk.pathfinder.ai https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.googleapis.com https://analytics.google.com https://www.google-analytics.com https://o4508291182551040.ingest.us.sentry.io https://sentry.io https://api.anthropic.com https://api-inference.huggingface.co https://inngest.com https://*.inngest.com wss://ws-us2.gitpod.io wss://*.gitpod.io",
+    "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com https://accounts.google.com https://www.google.com",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "base-uri 'self'",
