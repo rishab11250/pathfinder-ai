@@ -3,13 +3,14 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { AgentRunStatus } from "@prisma/client";
 
-export async function getAgentRuns() {
+export async function getAgentRuns({ limit = 50, cursor } = {}) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const runs = await db.agentRun.findMany({
+    const query = {
       where: {
         user: {
           clerkUserId: userId,
@@ -18,12 +19,21 @@ export async function getAgentRuns() {
       orderBy: {
         startedAt: "desc",
       },
-    });
+      take: limit,
+    };
+
+    if (cursor) {
+      query.cursor = { id: cursor };
+      query.skip = 1;
+    }
+
+    const runs = await db.agentRun.findMany(query);
 
     return { runs };
   } catch (error) {
     console.error("Error fetching agent runs:", error);
-    return { error: error.message };
+    const message = ["Unauthorized"].includes(error.message) ? error.message : "An unexpected error occurred.";
+    return { error: message };
   }
 }
 
@@ -32,12 +42,15 @@ export async function getAgentRun(id) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
     const run = await db.agentRun.findUnique({
       where: {
         id,
-        user: {
-          clerkUserId: userId,
-        },
+        userId: user.id,
       },
     });
 
@@ -46,7 +59,8 @@ export async function getAgentRun(id) {
     return { run };
   } catch (error) {
     console.error("Error fetching agent run:", error);
-    return { error: error.message };
+    const message = ["Unauthorized", "User not found", "Agent run not found"].includes(error.message) ? error.message : "An unexpected error occurred.";
+    return { error: message };
   }
 }
 
@@ -66,7 +80,7 @@ export async function createAgentRun(data) {
         userId: user.id,
         agentName: data.agentName,
         userPrompt: data.userPrompt,
-        status: data.status || "Running",
+        status: data.status || AgentRunStatus.Running,
         startedAt: new Date(),
       },
     });
@@ -76,7 +90,8 @@ export async function createAgentRun(data) {
     return { run };
   } catch (error) {
     console.error("Error creating agent run:", error);
-    return { error: error.message };
+    const message = ["Unauthorized", "User not found"].includes(error.message) ? error.message : "An unexpected error occurred.";
+    return { error: message };
   }
 }
 
@@ -85,19 +100,26 @@ export async function updateAgentRun(id, data) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
+    const updateData = {
+      status: data.status,
+      output: data.output,
+      errorMessage: data.errorMessage,
+    };
+    if (data.status !== undefined) {
+      updateData.completedAt = data.status !== AgentRunStatus.Running ? new Date() : null;
+    }
+
     const run = await db.agentRun.update({
       where: {
         id,
-        user: {
-          clerkUserId: userId,
-        },
+        userId: user.id,
       },
-      data: {
-        status: data.status,
-        output: data.output,
-        errorMessage: data.errorMessage,
-        completedAt: data.status !== "Running" ? new Date() : null,
-      },
+      data: updateData,
     });
 
     revalidatePath("/agent-history");
@@ -106,6 +128,7 @@ export async function updateAgentRun(id, data) {
     return { run };
   } catch (error) {
     console.error("Error updating agent run:", error);
-    return { error: error.message };
+    const message = ["Unauthorized", "User not found", "Agent run not found"].includes(error.message) ? error.message : "An unexpected error occurred.";
+    return { error: message };
   }
 }

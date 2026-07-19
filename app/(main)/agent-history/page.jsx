@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { getAgentRuns } from "@/actions/agent-run";
+import { AgentRunStatus } from "@prisma/client";
 import {
   Card,
   CardContent,
@@ -22,29 +23,35 @@ export default function AgentHistoryPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
     async function fetchRuns() {
       try {
         const res = await getAgentRuns();
+        if (!mounted) return;
         if (res.error) throw new Error(res.error);
         setRuns(res.runs || []);
       } catch (err) {
+        if (!mounted) return;
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
     fetchRuns();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "Completed":
+      case AgentRunStatus.Completed:
         return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Completed</Badge>;
-      case "Running":
+      case AgentRunStatus.Running:
         return <Badge variant="secondary" className="bg-blue-500 text-white hover:bg-blue-600">Running</Badge>;
-      case "Failed":
+      case AgentRunStatus.Failed:
         return <Badge variant="destructive">Failed</Badge>;
-      case "Cancelled":
+      case AgentRunStatus.Cancelled:
         return <Badge variant="outline">Cancelled</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;

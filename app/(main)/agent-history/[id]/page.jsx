@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { getAgentRun } from "@/actions/agent-run";
+import { getAgentRun, createAgentRun } from "@/actions/agent-run";
+import { AgentRunStatus } from "@prisma/client";
 import {
   Card,
   CardContent,
@@ -41,19 +42,27 @@ export default function AgentRunDetailsPage() {
     if (id) fetchRun();
   }, [id]);
 
-  const handleReplay = () => {
-    // Basic replay feature. Since we have specific agents like ATS Analyzer or Interview Coach,
-    // this would normally route to the specific agent tool with the context loaded.
-    // For this generic feature, we will show a toast and pretend we are copying context.
-    toast.success("Agent Replay Initiated", {
-      description: "Copied input context and starting a new run...",
-    });
-    
-    // As a placeholder, we could copy the text to clipboard or navigate to a unified runner
-    navigator.clipboard.writeText(run.userPrompt);
-    
-    // Simulate routing to a unified runner page if one exists
-    // router.push(`/agent-runner?replay=${run.id}`);
+  const handleReplay = async () => {
+    try {
+      toast.info("Agent Replay Initiated", {
+        description: "Creating a new run...",
+      });
+      const res = await createAgentRun({
+        agentName: run.agentName,
+        userPrompt: run.userPrompt,
+        status: AgentRunStatus.Running
+      });
+      if (res.error) throw new Error(res.error);
+      
+      toast.success("New run started successfully!");
+      // Since we don't have a specific tool mapped yet in this generic handler,
+      // we navigate to the new run's history page to see its progress.
+      router.push(`/agent-history/${res.run.id}`);
+    } catch (err) {
+      toast.error("Failed to replay agent", {
+        description: err.message
+      });
+    }
   };
 
   if (loading) {
@@ -87,9 +96,9 @@ export default function AgentRunDetailsPage() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "Completed": return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case "Running": return <RotateCcw className="h-5 w-5 text-blue-500 animate-spin" />;
-      case "Failed": return <AlertCircle className="h-5 w-5 text-red-500" />;
+      case AgentRunStatus.Completed: return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case AgentRunStatus.Running: return <RotateCcw className="h-5 w-5 text-blue-500 animate-spin" />;
+      case AgentRunStatus.Failed: return <AlertCircle className="h-5 w-5 text-red-500" />;
       default: return <Clock className="h-5 w-5 text-gray-500" />;
     }
   };
@@ -150,14 +159,14 @@ export default function AgentRunDetailsPage() {
             {/* Output Section */}
             <div>
               <h3 className="text-lg font-semibold mb-3 border-b pb-2">Agent Output</h3>
-              {run.status === "Failed" ? (
+              {run.status === AgentRunStatus.Failed ? (
                 <div className="bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 p-4 rounded-lg border border-red-200 dark:border-red-900/50">
                   <p className="font-semibold mb-1 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" /> Error Details
                   </p>
                   <p className="text-sm font-mono">{run.errorMessage || "An unknown error occurred."}</p>
                 </div>
-              ) : run.status === "Running" ? (
+              ) : run.status === AgentRunStatus.Running ? (
                 <div className="bg-muted/50 p-8 rounded-lg border text-center flex flex-col items-center">
                   <RotateCcw className="h-8 w-8 animate-spin text-primary mb-3" />
                   <p className="text-muted-foreground">Agent is currently processing this task...</p>

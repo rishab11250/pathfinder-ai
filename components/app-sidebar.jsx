@@ -171,7 +171,7 @@ const MENU_GROUPS = [
   {
     title: "System",
     items: [
-      { href: "/agent-history", label: "Agent History", icon: <History className="h-4 w-4 text-primary" />, shortcut: "" },
+      { href: "/agent-history", label: "Agent History", icon: <History className="h-4 w-4" />, shortcut: "" },
       { href: "/settings", label: "Settings", icon: <Settings className="h-4 w-4" />, shortcut: "" },
     ]
   }
