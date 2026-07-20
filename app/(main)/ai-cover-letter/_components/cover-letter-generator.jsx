@@ -22,6 +22,7 @@ import useFetch from "@/hooks/use-fetch";
 import { coverLetterSchema } from "@/app/lib/schema";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/misc/utils";
+import { sanitizePIIPayload } from "@/lib/utils/sanitizePII";
 
 const JD_MAX = 6000;
 
@@ -74,7 +75,8 @@ export default function CoverLetterGenerator() {
       return;
     }
     try {
-      await generateLetterFn(data);
+      const sanitizedData = sanitizePIIPayload(data);
+      await generateLetterFn(sanitizedData);
     } catch (error) {
       toast.error(
         error.message?.includes("quota")
