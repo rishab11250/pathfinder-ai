@@ -22,6 +22,7 @@ export default function VoiceCoachPage() {
   const { speak, cancel, supported: ttsSupported } = useTextToSpeech();
   
   const recognitionRef = useRef(null);
+  const TRANSCRIPT_MAX = 4000;
 
   // Reload when language changes so the prompt stays in sync with speech recognition locale
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -189,8 +190,16 @@ export default function VoiceCoachPage() {
                 </p>
 
                 {transcript && (
-                  <div className="mt-8 p-6 bg-muted/30 rounded-2xl w-full max-w-2xl border border-border">
+                  <div className="mt-8 p-6 bg-muted/30 rounded-2xl w-full max-w-2xl border border-border flex flex-col gap-2">
                     <p className="text-muted-foreground text-sm italic">"{transcript}"</p>
+                    
+                    {/* Dynamic Character Counter integration */}
+                    <div className="text-right text-xs mt-2 transition-colors">
+                      <span className={transcript.length > TRANSCRIPT_MAX ? "text-destructive font-medium" : "text-muted-foreground"}>
+                        {transcript.length}
+                      </span>
+                      <span className="text-muted-foreground"> / {TRANSCRIPT_MAX} characters</span>
+                    </div>
                   </div>
                 )}
               </motion.div>

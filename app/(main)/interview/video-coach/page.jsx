@@ -19,7 +19,7 @@ export default function VideoCoachPage() {
   const [evaluation, setEvaluation] = useState(null);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [error, setError] = useState(null);
-  
+  const TRANSCRIPT_MAX = 4000;
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -99,8 +99,8 @@ export default function VideoCoachPage() {
   const toggleRecording = async () => {
     if (loadingQuestion || !question) return;
     if (!permissionsGranted && !error) {
-       const success = await startCamera();
-       if (!success) return;
+      const success = await startCamera();
+      if (!success) return;
     }
     if (error) return;
 
@@ -217,9 +217,17 @@ export default function VideoCoachPage() {
               </div>
 
               {transcript && (
-                <div className="p-6 bg-muted/50 rounded-2xl border border-border">
+                <div className="p-6 bg-muted/50 rounded-2xl border border-border flex flex-col gap-2">
                   <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Live Transcript</h4>
                   <p className="text-sm italic text-foreground leading-relaxed">"{transcript}"</p>
+                  
+                  {/* Dynamic Character Counter */}
+                  <div className="text-right text-xs mt-2 transition-colors">
+                    <span className={transcript.length > TRANSCRIPT_MAX ? "text-destructive font-medium" : "text-muted-foreground"}>
+                      {transcript.length}
+                    </span>
+                    <span className="text-muted-foreground"> / {TRANSCRIPT_MAX} characters</span>
+                  </div>
                 </div>
               )}
             </div>
