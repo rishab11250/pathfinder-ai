@@ -41,7 +41,8 @@ import {
   BookOpenText,
   SearchCode,
   MessagesSquare,
-  GraduationCap
+  GraduationCap,
+  RefreshCw
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
@@ -66,6 +67,7 @@ const TOOL_CATEGORIES = [
       { name: "STAR Builder", desc: "Craft perfect stories", icon: Star, color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20", href: "/interview/star-builder" },
       { name: "Cheat Sheet", desc: "Quick prep guide", icon: FileText, color: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20", href: "/interview/cheat-sheet" },
       { name: "Reverse Interviewer", desc: "Ask the right questions", icon: GraduationCap, color: "bg-purple-500/10 text-purple-500 border-purple-500/20", href: "/reverse-interviewer" },
+      { name: "Weakness Spinner", desc: "Nail the hardest question", icon: RefreshCw, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/weakness-spinner" },
       { name: "Behavioral Prep", desc: "Beat personality tests", icon: BrainCircuit, color: "bg-rose-500/10 text-rose-500 border-rose-500/20", href: "/behavioral-prep" },
       { name: "Coffee Chat", desc: "Mock networking", icon: Coffee, color: "bg-amber-500/10 text-amber-500 border-amber-500/20", href: "/coffee-chat" },
       { name: "Take-Home Grader", desc: "Ace the technical test", icon: Code2, color: "bg-violet-500/10 text-violet-500 border-violet-500/20", href: "/assignment-grader" },
