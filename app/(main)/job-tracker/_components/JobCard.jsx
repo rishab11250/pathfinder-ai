@@ -6,6 +6,7 @@ import { Trash2, ExternalLink, FileText, ScanSearch, MapPin, DollarSign, Calenda
 import { deleteJobApplication, updateJobApplicationInterviewDate } from "@/actions/job-tracker";
 import { toast } from "sonner";
 import Link from "next/link";
+import { generateICSEvent } from "@/lib/calendar/ics";
 
 export default function JobCard({ job, onDelete, onUpdate }) {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -61,6 +62,28 @@ export default function JobCard({ job, onDelete, onUpdate }) {
     
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatDate(start)}/${formatDate(end)}&details=${encodeURIComponent(details)}`;
   };
+
+  const handleDownloadICS = () => {
+  try {
+    const icsContent = generateICSEvent({
+      jobTitle: job.jobTitle,
+      companyName: job.companyName,
+      interviewDate: job.interviewDate,
+      notes: job.notes,
+      url: job.url,
+    });
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `interview-${job.companyName.replace(/\s+/g, "_")}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  } catch {
+    toast.error("Couldn't generate calendar file — check the interview date.");
+  }
+};
 
   const updateDate = new Date(job.updatedAt);
   const isValidDate = !isNaN(updateDate.getTime());
@@ -140,14 +163,22 @@ export default function JobCard({ job, onDelete, onUpdate }) {
                   timeStyle: "short",
                 })}
               </div>
-              <a
-                href={handleCalendarLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full text-center py-1.5 px-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-bold text-[11px] mt-1 flex items-center justify-center gap-1 shadow-sm"
-              >
-                Add to Google Calendar
-              </a>
+              <div className="flex gap-1.5 mt-1">
+                <a
+                  href={handleCalendarLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center py-1.5 px-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-bold text-[11px] flex items-center justify-center gap-1 shadow-sm"
+                >
+                  Google Calendar
+                </a>
+                <button
+                  onClick={handleDownloadICS}
+                  className="flex-1 text-center py-1.5 px-3 bg-muted text-foreground border border-border rounded-lg hover:bg-muted/70 transition-colors font-bold text-[11px]"
+                >
+                  Download .ics
+                </button>
+              </div>
             </div>
           ) : (
             <div className="mt-3">
