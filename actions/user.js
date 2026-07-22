@@ -36,11 +36,11 @@ export async function updateUser(data) {
   let precomputedInsights = null;
   try {
     let existingInsight = await db.industryInsight.findUnique({
-      where: { industry: profileData.industry },
+      where: { userId_industry: { userId: user.id, industry: profileData.industry } },
     });
 
     if (!existingInsight) {
-      precomputedInsights = await generateAIInsights(profileData.industry);
+      precomputedInsights = await generateAIInsights(profileData.industry, user);
     }
   } catch (e) {
     // If AI generation fails, we'll create a placeholder in the transaction
@@ -52,18 +52,20 @@ export async function updateUser(data) {
     const result = await db.$transaction(async (tx) => {
       const industryInsight = precomputedInsights
         ? await tx.industryInsight.upsert({
-            where: { industry: profileData.industry },
+            where: { userId_industry: { userId: user.id, industry: profileData.industry } },
             update: {},
             create: {
+              userId: user.id,
               industry: profileData.industry,
               ...precomputedInsights,
               nextUpdate: getIndustryInsightRefreshTime(),
             },
           })
         : await tx.industryInsight.upsert({
-            where: { industry: profileData.industry },
+            where: { userId_industry: { userId: user.id, industry: profileData.industry } },
             update: {},
             create: {
+              userId: user.id,
               industry: profileData.industry,
               salaryRanges: [],
               growthRate: 0,

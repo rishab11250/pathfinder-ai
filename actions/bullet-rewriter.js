@@ -43,9 +43,6 @@ export async function rewriteBullet(rawParams) {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-    include: {
-      industryInsight: true,
-    },
   });
 
   if (!user) {

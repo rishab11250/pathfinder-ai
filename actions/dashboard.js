@@ -47,7 +47,6 @@ export async function getIndustryInsights() {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-    include: { industryInsight: true },
   });
   if (!user) return createLookupResponse(null);;
 
@@ -56,13 +55,18 @@ export async function getIndustryInsights() {
   }
 
   try {
-    if (isIndustryInsightStale(user.industryInsight)) {
+    const industryInsight = await db.industryInsight.findUnique({
+      where: { userId_industry: { userId: user.id, industry: user.industry } },
+    });
+
+    if (isIndustryInsightStale(industryInsight)) {
       const insights = await generateAIInsights(user.industry, user);
       const nextUpdate = getIndustryInsightRefreshTime();
 
-      const industryInsight = await db.industryInsight.upsert({
-        where: { industry: user.industry },
+      const updated = await db.industryInsight.upsert({
+        where: { userId_industry: { userId: user.id, industry: user.industry } },
         create: {
+          userId: user.id,
           industry: user.industry,
           salaryRanges: insights.salaryRanges,
           growthRate: insights.growthRate,
@@ -89,10 +93,10 @@ export async function getIndustryInsights() {
         },
       });
 
-      return industryInsight;
+      return updated;
     }
 
-    return user.industryInsight;
+    return industryInsight;
   } catch (error) {
     return handleServerError(error, "dashboard");
   }

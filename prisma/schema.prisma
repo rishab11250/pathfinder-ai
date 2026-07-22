@@ -55,7 +55,7 @@ model User {
   conversations         Conversation[]
   resume                Resume?
   portfolio             Portfolio?
-  industryInsight       IndustryInsight?       @relation(fields: [industry], references: [industry])
+  industryInsights      IndustryInsight[]
   atsAnalyses           AtsAnalysis[]
   settings              UserSettings?
   roadmaps              Roadmap[]
@@ -151,10 +151,13 @@ model CoverLetter {
 
 // industry @unique already creates a B-tree index for lookups (findUnique/upsert by industry).
 // A separate @@index([industry]) was removed - it duplicated the unique constraint index.
+// Per-user industry insights scoped by (userId, industry).
+// @@unique([userId, industry]) - upsert lookup for each user's industry data.
 model IndustryInsight {
   id                String   @id @default(cuid())
-  industry          String   @unique
-  users             User[]
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  industry          String
   salaryRanges      Json[]
   growthRate        Float
   demandLevel       String
@@ -165,6 +168,9 @@ model IndustryInsight {
   isGrounded        Boolean  @default(false)
   lastUpdated       DateTime @default(now())
   nextUpdate        DateTime
+
+  @@unique([userId, industry])
+  @@index([userId])
 }
 
 // @@index([userId]) - simple user lookups and deleteMany without ordering.

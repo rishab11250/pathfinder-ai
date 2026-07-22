@@ -85,9 +85,6 @@ export async function improveWithAI(rawParams) {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
-    include: {
-      industryInsight: true,
-    },
   });
   if (!user) return { success: false, errors: { _form: ["User account match could not be checked."] } };
 
