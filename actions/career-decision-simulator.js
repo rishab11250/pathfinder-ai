@@ -11,7 +11,6 @@ import { careerDecisionSchema } from "@/lib/schemas/forms";
 import { careerDecisionOutputSchema } from "@/lib/schemas/outputs";
 import { validateInput } from "@/lib/ai/validate";
 import { checkRateLimit, formatResetTime } from "@/lib/security/rate-limit-actions";
-import { getAuthenticatedUserId } from "@/lib/auth/auth-userid";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth/auth-errors";
 import { createSuccessResponse } from "@/lib/action-helpers/action-success";
 import { getUserHistory } from "@/lib/history/history-query";
@@ -19,7 +18,7 @@ import { createHistoryResponse } from "@/lib/history/history-response";
 import { createRecord } from "@/lib/db/record-create";
 
 export async function simulateCareerDecision(input) {
-  const userId = await getAuthenticatedUserId(auth);
+  const { userId } = await auth();
   if (!userId) return UNAUTHORIZED_RESPONSE;
 
   const user = await db.user.findUnique(buildUserLookup(userId));
@@ -99,7 +98,7 @@ export async function simulateCareerDecision(input) {
 }
 
 export async function getCareerDecisionSimulations() {
-  const userId = await getAuthenticatedUserId(auth);
+  const { userId } = await auth();
   if (!userId) return createHistoryResponse([]);
 
   const user = await db.user.findUnique(buildUserLookup(userId));
