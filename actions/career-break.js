@@ -20,7 +20,6 @@ import { completePersistence } from "@/lib/persistence/persistence-complete";
 import { auth } from "@clerk/nextjs/server";
 import { createErrorResponse } from "@/lib/action-helpers/action-errors";
 import { revalidatePath } from "next/cache";
-import { getAuthenticatedUserId } from "@/lib/auth/auth-userid";
 import { createPromptConfig } from "@/lib/ai/prompt-config";
 import { buildSecurePrompt, parseAIJson } from "@/lib/ai/prompt-safety";
 import { generateGeminiContent } from "@/lib/ai/gemini";
@@ -31,9 +30,10 @@ import { createOutputRules } from "@/lib/ai/output-rules";
 import { createHistoryResponse } from "@/lib/history/history-response";
 
 import { buildParsedResult } from "@/lib/ai/parsed-ai";
+
 /** Generate a career break plan based on user preferences. */
 export async function planCareerBreak(duration, reason, returnGoals) {
-  const userId = await getAuthenticatedUserId(auth);
+  const { userId } = await auth();
   if (!userId) return UNAUTHORIZED_RESPONSE;
 
   const user = await db.user.findUnique({ where: { clerkUserId: userId } });
