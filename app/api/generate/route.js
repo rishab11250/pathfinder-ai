@@ -222,11 +222,6 @@ export async function POST(request) {
   }
   let cacheUser = userId || extractTrustedClientIp(request.headers) || "anonymous";
 
-
-
-
-
-
   if (conversationId) {
     try {
       await db.$transaction(
