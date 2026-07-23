@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { updateUserSettings, sendTestNotificationEmail } from "@/actions/settings";
 import { updateUser } from "@/actions/user";
 import { updateUserSettings } from "@/actions/settings";
 import { buildUserProfileContext } from "@/lib/ai/ai-context";
@@ -355,6 +356,21 @@ export default function SettingsClient({ userId, user, settings }) {
                   }
                 />
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const res = await sendTestNotificationEmail();
+                  if (res.success) {
+                    toast.success("Test email sent — check your inbox.");
+                  } else {
+                    toast.error(res.errors?._form?.[0] || "Failed to send test email.");
+                  }
+                }}
+              >
+                Send test email
+              </Button>
 
               <div className="flex justify-end">
                 <Button onClick={handleSave} disabled={isPending || !hasChanges}>

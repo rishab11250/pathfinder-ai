@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { validateInput } from "@/lib/ai/validate";
 import { userSettingsSchema, accessibilitySettingsSchema } from "@/lib/schemas/forms";
+import { sendEmail } from "@/lib/email/send-email";
 
 function normalizeSettings(settings) {
   if (!settings) return { 
@@ -116,6 +117,27 @@ export async function updateAccessibilitySettings(data) {
 
     revalidatePath("/settings");
     return { success: true, settings: normalizeSettings(settings) };
+  } catch (error) {
+    return handleServerError(error, "settings");
+  }
+}
+
+export async function sendTestNotificationEmail() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await getUserByClerkId(userId);
+  if (!user?.email) {
+    return { success: false, errors: { _form: ["No email on file"] } };
+  }
+
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: "Test notification from PathFinder AI",
+      html: "<p>This is a test — if you got this, your email alerts are working.</p>",
+    });
+    return { success: true };
   } catch (error) {
     return handleServerError(error, "settings");
   }
