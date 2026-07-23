@@ -17,7 +17,11 @@
     "test:ci": "npm run test:unit && npm run test:e2e",
     "test:stream": "node scripts/validate-stream-reconciliation.mjs",
     "lint": "next lint",
+    "seed": "node seed.js",
     "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "node seed.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
